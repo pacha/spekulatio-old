@@ -25,7 +25,7 @@ setuptools.setup(
         "frontmatter>=3.0.5",
         "Jinja2>=2.10",
         "pyScss>=1.3.5",
-        "PyYAML>=3.13",
+        "PyYAML==3.13",
         "rst2html5>=1.10.1",
     ],
     entry_points={
