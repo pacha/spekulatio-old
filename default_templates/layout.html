@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html class="no-js">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {% if title %}
+        <title>{{ title }}</title>
+        {% endif %}
+    </head>
+    <body>
+        <h2>Content</h2>
+        {% if _content %}
+        <div id="content">{{ _content }}</div>
+        {% endif %}
+    </body>
+</html>
+
