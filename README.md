@@ -48,14 +48,14 @@ build/
         styles.css
 ```
 
-In the generation process, each content file (`.rst`, `.json`, `.yaml`) is
+During the generation process, each content file (`.rst`, `.json`, `.yaml`) is
 converted into a dictionary of key/value pairs that is passed to one of the
 templates to generate the corresponding HTML file. You can define which
-templates to per project, folder and input file.
+templates to use per project, folder and file.
 
 Any other file in the _content_ folder will be copied over to the _build_
-folder without modification. That means that you can add images, style sheets,
-JavaScript files or any other type of static files and include them in your
+folder without modification. That means that you can add images, style sheet files,
+JavaScript files or any other type of static files and include them directly in your
 site.
 
 Features
@@ -156,7 +156,7 @@ My content.
 As you can see, at the top of the file you can provide the metadata that you
 want to associate to this document (this is known as the _docinfo_ section in
 RestructuredText). Keys that start with an underscore have an special meaning
-since they are used by Spekulatio itself (actually, there are very few of them).
+in Spekulatio and are used to configure how the site will be generated.
 In this case, `_template` just indicates which template file to use to generate
 the HTML associated to this restructured text file.
 
@@ -169,21 +169,28 @@ For the `page.html` template, you can use:
     </head>
     <body>
         <section id="content">
-            {{ _content }}
+            {{ content }}
         </section>
         <section id="author">
-            Page created by {{ author }} on {{ date }}.
+            Page created by {{ data.author }} on {{ data.date }}.
         </section>
     </body>
 </html>
 ```
 
-Here you can see that we can use the entries that we previously defined directly
-in our template (ie. `author` and `date`). We're also using another special
-variable: `_content`. This one holds the content of the original document already
-converted to HTML (striped out of the initial metadata section).
+This template file is used to generate the file `index.html` out of
+`index.rst`. To do so, Spekulatio passes three variables to it:
 
-Now you can generate your new site from the command line:
+* `data`: a dictionary with the metadata specified in `index.rst`
+* `content`: the content of `index.rst` rendered as HTML
+* `node`: a structure that we can use to build navigation links (eg. _next_ or
+  _previous_ links in a list of documents). Since we don't need those links here,
+  the template doesn't use this one.
+
+You can see in the template how these variables are used to specify where we
+want the information to appear once the page is rendered.
+
+Now, we're ready to generate our site using the following command:
 ```
 my-project$ spekulatio
 ```
@@ -212,10 +219,9 @@ Creating a site
 ---------------
 
 In the _Quickstart_ section you can see how to generate a minimal site with a
-single file. In this one, we'll dig a bit deeper on how to provide content to
-create a real project.
+single file. In this one, we'll dig a bit deeper on how to create a real project.
 
-To create a site you need to provide tree kinds of files:
+To create a site you need to provide three kinds of files:
 
 * Content files: The sources of information that will be converted into HTML
   files.
@@ -226,6 +232,17 @@ To create a site you need to provide tree kinds of files:
 * Static files: Any other file like images or style sheets, which will be copied
   over to the _build_ directory and that can be referenced from the template and
   content files.
+
+Content files are processed one by one and converted into HTML files using the
+templates. The static files are directly copied to the _build_directory. To
+generate the HTML files, Spekulatio converts the original content file into a
+dictionary, the keys being the metadata that you set at the beginning of the
+file, and then passes three variables to the HTML template:
+
+* `data`: a dictionary with the metadata of the content file
+* `content`: the content rendered as HTML
+* `node`: a structure to create navigation links (eg. _next_ and _previous_
+  links in a list of documents)
 
 ### Content files
 
@@ -256,8 +273,8 @@ passed to a template to render the final result.
 
 Don't place several files that would end up generating the same output filename
 in your _content_ folder since only one of them will generate the final
-resulting HTML (the last one to be processed precisely). For example, this is
-not a good idea:
+resulting HTML (the last one to be processed, in particular). For example, this is
+not really a good idea:
 ```
 my-project/
     content/
@@ -286,10 +303,12 @@ author: "Me"
 date: "March 10th, 2019"
 ```
 will render the same result. The dictionary data generated out of them is passed
-untouched to the template, which in this case could reference `{{ author }}` or
-`{{ date }}` freely. (The underscore key `_template` is passed to the template
-too, but it won't probably of much use to render the template other than for
-debugging purposes).
+untouched to the template, which in this case could reference `{{ data.author }}` or
+`{{ data.date }}` freely.
+
+In addition to be used internally by Spekulatio, the underscore key `_template`
+is passed to the template too, but it won't probably of much use to render the
+template other than for debugging purposes.
 
 #### RestructuredText
 
@@ -332,11 +351,11 @@ supported in those formats.
 Sometimes you may want to provide data that is share across multiple pages. For
 instance, you may want to use the same template across all the files in a
 subdirectory. Editing all the pages one by one to add the same `_template` value
-can be cumbersome in that case.
+can be cumbersome, and there's a more generic way to do it.
 
 Spekulatio has a particular type of content files just to solve this problem. If
 you create a content file by prepending an underscore to its name, two things
-happen:
+will happen:
 
 * That content file will not generate any HTML associated to it.
 
@@ -370,11 +389,13 @@ So, if `_values.json` has:
 both `bar.rst` and `baz.rst` will be rendered with the `special-layout.html`
 template.
 
-The name or the type of underscore files don't matter for Spekulatio. It is only
-the underscore that triggers them being treated in a special manner. You can
-use any of the content types (`.rst`, `.json` or `.yaml`) to define them, and
-you can call them `_values.xxx` or use any other name that makes sense in the
-context of the project. You can even use several of them in the same folder too.
+The name or the type of underscore files doesn't really matter for the process.
+It is only the underscore that triggers them being treated in a special manner.
+You can use any of the content types (`.rst`, `.json` or `.yaml`) to define
+them, and you can call them `_values.xxx` or use any other name that makes
+sense in the context of the project. You can even use several of them in the
+same folder too. (If you have several underscore files in the same directory
+they will be processed in alphabetical order).
 
 The values provided by a underscore content file have less priority than the
 ones that are provided in the files themselves. That means that if `baz.rst`
@@ -441,10 +462,11 @@ To know which template to use in each case:
   content file. If a template of that name doesn't exist then an error is
   raised.
 
-* If the key is not present, then the default `layout.html` name is used. If a
-  template with that name is present in the _templates_ folder of the user, then
-  that template is used. If not, then Spekulatio will use a default template
-  that just creates an HTML listing all the data entries of the content file.
+* If the `_template` key is not present, then the default `layout.html` name is
+  used. If a template with that name is present in the _templates_ folder of
+  the user, then that template is used. If not, then Spekulatio will use a
+  default template that just creates an HTML listing all the data entries of
+  the content file.
 
 ### Static files
 

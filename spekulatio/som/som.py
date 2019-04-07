@@ -12,18 +12,18 @@ class SOM:
     to render an HTML page out of it.
 
     The som is created by recursively traversing a root path and generating
-    directory nodes out of the filesystem directories and file nodes out of:
-
-        * RestructuredText (.rst)
-        * JSON (.json)
-
-    files.
+    directory nodes out of the filesystem directories and file nodes out of
+    the content files (.rst, .json, .yaml, ...) in them.
     """
     def __init__(self, root_path):
-        self.root_path = root_path
+        # the map contains an item for each node in the tree:
+        # * the key is the path (as a string) of the node
+        # * the value is the node itself
+        # it is used as a cache to easily retrieve a node given its path
         self.map = {}
 
         # create the nodes and map
+        self.root_path = root_path
         self.root_node = self.create_tree(root_path)
 
         # calculate the data of each node using its local data and the data
@@ -85,13 +85,13 @@ class SOM:
                 else:
                     child_node = Node(child_path.relative_to(self.root_path), is_dir=False)
                     self.map[str(child_node)] = child_node
-                    child_node.local_data.update(data)
+                    child_node.raw_data.update(data)
                     node.add_child(child_node)
 
         # set directory data
         sorted_dir_data_parts = sorted(dir_data_parts, key=lambda x: x['name'])
         for data_part in sorted_dir_data_parts:
-            node.local_data.update(data_part['data'])
+            node.raw_data.update(data_part['data'])
 
         return node
 
@@ -106,11 +106,19 @@ class SOM:
         The farder the origin of the data to a given node, the least it has
         priority over the same keys set deeper in the tree.
         """
-        # inherit parent's data
-        if node != self.root_node:
-            node.data.update(node.parent.data)
 
-        # merge local data
+        # inherit parent's global data
+        if node != self.root_node:
+            node.global_data.update(node.parent.global_data)
+
+        # process raw data
+        node.global_data.update(
+            {key: value for key, value in node.raw_data.items() if key != '_local'}
+        )
+        node.local_data.update(node.raw_data.get('_local', {}))
+
+        # merge global and local data
+        node.data.update(node.global_data)
         node.data.update(node.local_data)
 
         # process children recursively

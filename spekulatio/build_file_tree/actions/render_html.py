@@ -27,7 +27,7 @@ def render_html_factory(som, template_paths):
         # create html
         template_name = node.data.get('_template', 'layout.html')
         template = env.get_template(template_name)
-        content = template.render(**node.data)
+        content = template.render(node=node, data=node.data, content=node.data.get('_content'))
         dst_path.write_text(content)
 
     return render_html
