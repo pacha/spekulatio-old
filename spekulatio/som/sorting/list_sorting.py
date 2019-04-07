@@ -21,14 +21,11 @@ def list_sorting(nodes, direction, data):
 
     # check if there was a 1:1 relationship between list and nodes
     for node in unsorted_nodes:
-        logging.warning(f"Can't sort {node.path}. File not in the sorting list.")
-
-    # don't leave any page without being included (even unsorted ones)
-    final_nodes = sorted_nodes + unsorted_nodes
+        logging.warning(f"Not sorting {node.path}. File not in sorting list.")
 
     # reverse if necessary
     if reverse:
-        final_nodes.reverse()
+        sorted_nodes.reverse()
 
-    return final_nodes
+    return sorted_nodes
 

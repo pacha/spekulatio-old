@@ -15,7 +15,7 @@ def field_sorting(nodes, direction, data):
             nodes_with_field.append(node)
         else:
             nodes_without_field.append(node)
-            logging.warning(f"Can't sort {node} because it doesn't have a field '{field}'")
+            logging.warning(f"Not sorting {node.path}. File doesn't contain a field '{field}'")
 
     # get sorted nodes
     try:
@@ -24,6 +24,5 @@ def field_sorting(nodes, direction, data):
         logging.warning(f"Can't sort pages by field {field}: {err}")
         sorted_nodes = nodes_with_field
 
-    # return sorted nodes first, unsorted last
-    return sorted_nodes + nodes_without_field
+    return sorted_nodes
 
