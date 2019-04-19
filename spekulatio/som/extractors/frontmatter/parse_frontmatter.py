@@ -40,7 +40,7 @@ def parse_frontmatter(text):
 
     # parse frontmatter
     try:
-        metadata = yaml.load(frontmatter)
+        metadata = yaml.safe_load(frontmatter)
     except Exception as err:
         raise FrontmatterError(f"Can't parse YAML in frontmatter: {err}")
 

@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="spekulatio",
-    version="0.9.0",
+    version="0.9.1",
     author="Andrés Sopeña Pérez",
     author_email="asopena@ehmm.org",
     description="A simple but flexible static site generator.",
