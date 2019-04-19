@@ -22,7 +22,6 @@ setuptools.setup(
     ],
     install_requires=[
         "Click>=7.0",
-        "frontmatter>=3.0.5",
         "Jinja2>=2.10",
         "pyScss>=1.3.5",
         "PyYAML==3.13",

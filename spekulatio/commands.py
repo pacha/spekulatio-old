@@ -75,6 +75,8 @@ def create_site(build_dir, content_dir, template_dir, no_cache, verbose):
                 '.json': ('.html', render_html),
                 '.yaml': ('.html', render_html),
                 '.yml': ('.html', render_html),
+                '.html': ('.html', render_html),
+                '.htm': ('.html', render_html),
             }
         )
 

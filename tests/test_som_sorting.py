@@ -92,8 +92,7 @@ def test_sorting_by_field(tmp_path):
         'dir1/aaa.rst',
         'dir1/bbb.rst',
         'dir1/ccc.rst',
-        'eee.rst',
-        'bbb.rst'
+        'eee.rst'
     ]
 
     som = SOM(tmp_path)
@@ -111,7 +110,6 @@ def test_sorting_by_list(tmp_path):
                 "ccc.rst",
                 "aaa.rst",
                 "dir1",
-                "eee.rst",
                 "bbb.rst"
             ]
         }
@@ -138,7 +136,6 @@ def test_sorting_by_list(tmp_path):
         'dir1/aaa.rst',
         'dir1/bbb.rst',
         'dir1/ccc.rst',
-        'eee.rst',
         'bbb.rst'
     ]
 
