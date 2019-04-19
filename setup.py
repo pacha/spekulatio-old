@@ -24,7 +24,7 @@ setuptools.setup(
         "Click>=7.0",
         "Jinja2>=2.10",
         "pyScss>=1.3.5",
-        "PyYAML==3.13",
+        'pyyaml>=4.2b1',
         "rst2html5>=1.10.1",
     ],
     entry_points={
