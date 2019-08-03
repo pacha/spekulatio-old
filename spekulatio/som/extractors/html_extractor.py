@@ -6,19 +6,23 @@ def html_extractor(text):
 
     The keys of the returned dictionary are:
 
-        * metadata coming from an (optional) frontmatter
-
-        * the '_content' key containing the HTML document
+        :data: metadata coming from an (optional) frontmatter
+        :content: the HTML document
+        :title: first heading of the HTML document (not yet implemented)
+        :toc: list of headings of the HTML document (not yet implemented)
 
     """
 
     # parse frontmatter
     content, metadata = parse_frontmatter(text)
 
-    # create dictionary
-    data = {}
-    data.update(metadata)
-    data['_content'] = content
-
-    return data
+    # node info
+    # TODO: parse HTML to get title and toc
+    node_info = {
+        'title': None,
+        'data': metadata,
+        'toc': None,
+        'content': content,
+    }
+    return node_info
 

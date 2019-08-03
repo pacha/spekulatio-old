@@ -13,7 +13,8 @@ def test_extract_json_data():
             "bar": "this"
         }
     """
-    data = json_extractor(text)
+    node_info = json_extractor(text)
+    data = node_info['data']
     assert len(data) == 2
     assert data['foo'] == 1
     assert data['bar'] == "this"
@@ -28,5 +29,5 @@ def test_json_non_dict_data():
         ]
     """
     with pytest.raises(SpekulatioError):
-        data = json_extractor(text)
+        node_info = json_extractor(text)
 

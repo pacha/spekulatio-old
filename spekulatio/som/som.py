@@ -1,3 +1,4 @@
+import os
 import logging
 
 from .node import Node
@@ -69,23 +70,30 @@ class SOM:
                 else:
                     duplicates.add(child_path.stem)
 
+                # extract node information
                 text = child_path.read_text()
                 extractor = extractors[child_path.suffix]
+                prev_cwd = os.getcwd()
+                os.chdir(self.root_path)
                 try:
-                    data = extractor(text)
+                    node_info = extractor(text)
                 except Exception as err:
                     logging.error(f"Can't process file: {child_path}. {err}")
                     continue
+                finally:
+                    os.chdir(prev_cwd)
 
                 if child_path.name.startswith('_'):
                     dir_data_parts.append({
                         'name': child_path.name,
-                        'data': data,
+                        'data': node_info['data'],
                     })
                 else:
-                    child_node = Node(child_path.relative_to(self.root_path), is_dir=False)
+                    child_node = Node(
+                        path=child_path.relative_to(self.root_path),
+                        is_dir=False,
+                        **node_info)
                     self.map[str(child_node)] = child_node
-                    child_node.raw_data.update(data)
                     node.add_child(child_node)
 
         # set directory data

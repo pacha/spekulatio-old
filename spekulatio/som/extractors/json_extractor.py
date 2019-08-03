@@ -13,5 +13,12 @@ def json_extractor(text):
         msg = "To extract the content, the top level element in a JSON file must be an object"
         raise SpekulatioError(msg)
 
-    return data
+    # node info
+    node_info = {
+        'title': None,
+        'data': data,
+        'toc': None,
+        'content': None,
+    }
+    return node_info
 

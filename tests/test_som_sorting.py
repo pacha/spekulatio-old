@@ -70,7 +70,7 @@ def test_sorting_by_field(tmp_path):
     values = tmp_path / '_values.json'
     values.write_text('{"_sorting_method": "field", "_sorting_data": "position"}')
 
-    rst_template = "\n:position: {}\n\nTitle\n=====\n\nContent\n"
+    rst_template = "---\nposition: {}\n---\n\nTitle\n=====\n\nContent\n"
     (tmp_path / 'aaa.rst').write_text(rst_template.format('2'))
     (tmp_path / 'bbb.rst').touch()
     (tmp_path / 'ccc.rst').write_text(rst_template.format('1'))
@@ -79,7 +79,7 @@ def test_sorting_by_field(tmp_path):
     dir1 = tmp_path / 'dir1/'
     dir1.mkdir()
     values_dir1 = dir1 / '_values.json'
-    values_dir1.write_text('{"position": "3", "_sorting_method": "name"}')
+    values_dir1.write_text('{"position": 3, "_sorting_method": "name"}')
     (dir1 / 'bbb.rst').touch()
     (dir1 / 'aaa.rst').touch()
     (dir1 / 'ccc.rst').touch()
@@ -96,6 +96,8 @@ def test_sorting_by_field(tmp_path):
     ]
 
     som = SOM(tmp_path)
+    for node in som.iter_nodes():
+        print(node.path, node.data)
     assert expected_result == som.list_names()
 
 

@@ -28,8 +28,8 @@ Title Four
 text of title four
 
     """
-    data = rst_extractor(text)
-    assert data['_toc'] == [
+    node_info = rst_extractor(text)
+    assert node_info['toc'] == [
         {
             'level': 1,
             'id': 'title-one',

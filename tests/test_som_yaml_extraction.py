@@ -14,7 +14,8 @@ def test_extract_yaml_data():
           - one
           - two
     """
-    data = yaml_extractor(text)
+    node_info = yaml_extractor(text)
+    data = node_info['data']
     assert len(data) == 3
     assert data['foo'] == 1
     assert data['bar'] == 'value'

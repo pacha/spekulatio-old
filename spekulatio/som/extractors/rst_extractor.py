@@ -1,7 +1,6 @@
 
 from docutils import io
 from docutils import core
-from rst2html5_ import HTML5Writer
 
 from .frontmatter import parse_frontmatter
 
@@ -10,13 +9,10 @@ def rst_extractor(text):
 
     The keys of the dictionary are:
 
-        * the metadata coming from an (optional) frontmatter
-
-        * the metadata coming from an (optional) docinfo section
-
-        * the '_content' key containing the document converted to HTML
-
-        * the '_toc' key containing the document's table of contents
+        :data: metadata coming from an (optional) frontmatter and (optional) docinfo sections.
+        :content: the HTML document generated from the RestructuredText one
+        :title: first heading of the document
+        :toc: list of headings of document
 
     The docinfo section of a RestructuredText file is a definition list at the
     very start of the document. Eg::
@@ -29,8 +25,8 @@ def rst_extractor(text):
         ...
 
     Both the frontmatter and the docinfo can be present simultaneously in the
-    same file. If that's the case, docinfo items have preference over the
-    frontmatter ones if the keys are the same. (Be also aware than in the
+    same file. If that's the case, frontmatter items have preference over the
+    docinfo ones if the keys are the same. (Be also aware than in the
     docinfo section the values can't have a type other than strings, unlike
     in frontmatter).
     """
@@ -38,7 +34,11 @@ def rst_extractor(text):
     # parse frontmatter
     content, metadata = parse_frontmatter(text)
 
-    # parse content
+    settings_overrides = {
+        'doctitle_xform': False,
+        'initial_header_level': 1,
+    }
+
     output, pub = core.publish_programmatically(
         source_class=io.StringInput, source=content,
         source_path=None,
@@ -46,22 +46,26 @@ def rst_extractor(text):
         destination_path=None,
         reader=None, reader_name='standalone',
         parser=None, parser_name='restructuredtext',
-        writer=HTML5Writer(), writer_name='null',
-        settings=None, settings_spec=None, settings_overrides=None,
+        writer=None, writer_name='html5',
+        settings=None, settings_spec=None, settings_overrides=settings_overrides,
         config_section=None, enable_exit_status=None)
 
     docinfo = pub.writer.docinfo
-    body = pub.writer.body
+    body = pub.writer.parts['html_body']
     toc = _extract_toc(pub.writer.document)
 
-    # create dictionary
     data = {}
-    data.update(metadata)
     data.update(docinfo)
-    data['_content'] = body
-    data['_toc'] = toc
+    data.update(metadata)
 
-    return data
+    # create dictionary
+    node_info = {
+        'title': toc[0]['name'] if toc else None,
+        'data': data,
+        'toc': toc,
+        'content': body,
+    }
+    return node_info
 
 def _extract_toc(node, level=1, toc_depth=3):
     """Extract table of contents from rst document."""

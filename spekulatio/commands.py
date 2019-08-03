@@ -24,7 +24,7 @@ default_template_path = current_dir / 'default_templates'
         help="Directory for content files (default: ./content).")
 @click.option('--template-dir', default='./templates',
         help="Directory for HTML templates (default: ./templates).")
-@click.option('--no-cache', default=False, is_flag=True,
+@click.option('--no-cache', default=True, is_flag=True,
         help="Don't check timestamps. Regenerate all files.")
 @click.option('--verbose', default=False, is_flag=True,
         help="Show processing messages.")

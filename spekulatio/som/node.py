@@ -4,13 +4,18 @@ from collections import OrderedDict
 class Node:
     """Base class of all the nodes in a som."""
 
-    def __init__(self, path, is_dir):
+    def __init__(self, path, is_dir, title=None, data=None, toc=None, content=None):
         self.path = path
         self.is_dir = is_dir
-        self.raw_data = OrderedDict()
         self.local_data = OrderedDict()
         self.global_data = OrderedDict()
         self.data = OrderedDict()
+
+        # metadata
+        self._title = title
+        self.toc = toc or []
+        self.content = content
+        self.raw_data = data or {}
 
         # relationships
         self.parent = None
@@ -22,6 +27,10 @@ class Node:
     @property
     def skip(self):
         return self.is_dir and not bool(self.children)
+
+    @property
+    def title(self):
+        return self.raw_data.get('title') or self._title
 
     @property
     def url(self):
@@ -39,6 +48,10 @@ class Node:
         relative_url = f"/{'/'.join(html_path.parts)}"
         return relative_url
 
+    @property
+    def sections(self):
+        """Return the second level entries in the toc."""
+        return self.toc[0]['children'] if self.toc else []
 
     def iter_nodes(self):
         """Traverse tree from this node."""
@@ -57,6 +70,15 @@ class Node:
         """Set parent/child relationship between this and the passed node."""
         self.children.append(node)
         node.parent = self
+
+    def same_branch(self, node):
+        """Return True if the passed node and this one belong to the same branch."""
+        ancestor = self
+        while ancestor:
+            if ancestor == node:
+                return True
+            ancestor = ancestor.parent
+        return False
 
     def __str__(self):
         return str(self.path)

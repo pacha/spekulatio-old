@@ -23,11 +23,12 @@ def render_html_factory(som, template_paths):
         # initialize templating environment
         loader = jinja2.FileSystemLoader(template_paths, followlinks=True)
         env = jinja2.Environment(loader=loader)
+        env.globals.update(get_node=lambda path: som.map[path])
 
         # create html
         template_name = node.data.get('_template', 'layout.html')
         template = env.get_template(template_name)
-        content = template.render(node=node, data=node.data, content=node.data.get('_content'))
+        content = template.render(node=node, data=node.data)
         dst_path.write_text(content)
 
     return render_html
