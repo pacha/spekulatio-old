@@ -95,10 +95,10 @@ technology such as React or Vue.js.
 Spekulatio is just agnostic about, well, everything...
 
 * It requires very little to learn. Spekulatio is very small and based around a
-  very simple concept: when you pass a content folder, RestructuredText, JSON
-  and YAML files are converted to HTML and the rest of files are just copied
-  over. So, basically, all the documentation you need to learn how to use the
-  tool is this single page.
+  very simple concept: when you pass a content folder, some files
+  (RestructuredText, JSON and YAML) are converted to HTML and the rest of them
+  are just copied over. So, basically, all the documentation you need to learn
+  how to use the tool is this single page.
 
 * It is not intended for any kind of site in particular. It has no notion of
   _posts_, _authors_ or _categories_. It is up to you to define which
@@ -127,8 +127,8 @@ pip3 install git+https://github.com/pacha/spekulatio.git#egg=spekulatio
 **Note:** If you are installing the tool at the system level you may need to run
 pip with `sudo`.
 
-Quickstart
-----------
+Creating a site
+---------------
 
 This is an example of how to create a minimal site using Spekulatio.
 
@@ -144,21 +144,24 @@ my-project/
 
 Use this as the contents of `index.rst`:
 ```
-:_template: page.html
-:author: Me
-:date: March 10th, 2019
+---
+_template: "page.html"
+author: "Me"
+date: "March 10th, 2019"
+---
 
 My title
 ========
 
 My content.
 ```
-As you can see, at the top of the file you can provide the metadata that you
-want to associate to this document (this is known as the _docinfo_ section in
-RestructuredText). Keys that start with an underscore have an special meaning
-in Spekulatio and are used to configure how the site will be generated.
-In this case, `_template` just indicates which template file to use to generate
-the HTML associated to this restructured text file.
+At the top of the file, you can specify the metadata that you want to associate
+to this document using what is popularly known as *front-matter*. That is, a
+YAML snipped enclosed between three-dashes lines. Keys that start with an
+underscore have an special meaning in Spekulatio and are used to configure how
+the site will be generated. In this case, `_template` just indicates which
+template file to use to generate the HTML associated to this restructured text
+file.
 
 For the `page.html` template, you can use:
 ```html
@@ -169,26 +172,44 @@ For the `page.html` template, you can use:
     </head>
     <body>
         <section id="content">
-            {{ content }}
+            {{ node.content }}
         </section>
         <section id="author">
-            Page created by {{ data.author }} on {{ data.date }}.
+            Page created by {{ node.data.author }} on {{ node.data.date }}.
         </section>
     </body>
 </html>
 ```
 
 This template file is used to generate the file `index.html` out of
-`index.rst`. To do so, Spekulatio passes three variables to it:
+`index.rst` and Spekulatio passes a single object to it: ``node``.
 
-* `data`: a dictionary with the metadata specified in `index.rst`
-* `content`: the content of `index.rst` rendered as HTML
-* `node`: a structure that we can use to build navigation links (eg. _next_ or
-  _previous_ links in a list of documents). Since we don't need those links here,
-  the template doesn't use this one.
+A node represents the page you're rendering at that moment in the content tree
+and it allows you to access the particular content of the page within the
+template:
 
-You can see in the template how these variables are used to specify where we
-want the information to appear once the page is rendered.
+* `node.content`: is the content of the RestructuredText file converted to HTML.
+
+* `node.data`: is a dictionary with the metadata passed as front-matter (eg.
+  you can access a key `foo` with `node.data.foo`). Since metadata is very
+  frequently accessed from the template, there's a shortcut `data` passed to the
+  template too pointing to the data dictionary (ie. `data.foo` is the same as
+  `node.data.foo`).
+
+Actually, nodes represent both directories and pages of your content tree, and
+you can navigate through them using the following properties:
+
+* `node.parent`: parent node of the current one being rendered.
+
+* `node.children`: for a directory node, all children nodes
+
+* `node.next`: next node (breadth-first order)
+
+* `node.prev`: previous node (breadth-first order)
+
+* `node.root`: root node of the content tree
+
+Accessing other nodes can be useful to build menus or breadcrumb links.
 
 Now, we're ready to generate our site using the following command:
 ```
@@ -215,138 +236,7 @@ This example uses a single RestructuredText file as content. In the case of JSON
 or YAML files the procedure is even simpler since the whole content of the files
 is considered metadata and passed as a dictionary to the templates.
 
-Creating a site
----------------
-
-In the _Quickstart_ section you can see how to generate a minimal site with a
-single file. In this one, we'll dig a bit deeper on how to create a real project.
-
-To create a site you need to provide three kinds of files:
-
-* Content files: The sources of information that will be converted into HTML
-  files.
-
-* Template files: Your Jinja2 templates, which are used to render the final HTML
-  by passing the content of the content files to them.
-
-* Static files: Any other file like images or style sheets, which will be copied
-  over to the _build_ directory and that can be referenced from the template and
-  content files.
-
-Content files are processed one by one and converted into HTML files using the
-templates. The static files are directly copied to the _build_directory. To
-generate the HTML files, Spekulatio converts the original content file into a
-dictionary, the keys being the metadata that you set at the beginning of the
-file, and then passes three variables to the HTML template:
-
-* `data`: a dictionary with the metadata of the content file
-* `content`: the content rendered as HTML
-* `node`: a structure to create navigation links (eg. _next_ and _previous_
-  links in a list of documents)
-
-### Content files
-
-Content files are all the RestructuredText (`.rst`), JSON (`.json`) and YAML
-(`.yaml` or `.yml`) files in the _content_ folder.
-
-Each content file in the _content_ folder will be converted into an HTML file.
-The relative path of the content file will be used to generate the corresponding
-HTML file. For example, for an input file at:
-```
-my-project/
-    content/
-        a-folder/
-            another-folder/
-                foo.yaml
-```
-will generate an output file at:
-```
-my-project/
-    build/
-        a-folder/
-            another-folder/
-                foo.html
-```
-
-To generate the HTML file, the input file is converted in a dictionary and
-passed to a template to render the final result.
-
-Don't place several files that would end up generating the same output filename
-in your _content_ folder since only one of them will generate the final
-resulting HTML (the last one to be processed, in particular). For example, this is
-not really a good idea:
-```
-my-project/
-    content/
-        foo.json
-        foo.yaml
-```
-
-#### JSON and YAML
-
-For JSON and YAML, only files that contain a top level object are allowed (that
-is, the top level element can't be a list, since it can't be converted directly
-into a dictionary).
-
-For example, both this JSON file:
-```JavaScript
-{
-    "_template": "page.html",
-    "author": "Me",
-    "date": "March 10th, 2019"
-}
-```
-and this YAML file:
-```yaml
-_template: "page.html"
-author: "Me"
-date: "March 10th, 2019"
-```
-will render the same result. The dictionary data generated out of them is passed
-untouched to the template, which in this case could reference `{{ data.author }}` or
-`{{ data.date }}` freely.
-
-In addition to be used internally by Spekulatio, the underscore key `_template`
-is passed to the template too, but it won't probably of much use to render the
-template other than for debugging purposes.
-
-#### RestructuredText
-
-RestructuredText files behave a bit differently than JSON or YAML files. A
-dictionary is created out of a RestructuredText file too, however one more key
-`_content` is added to it. This key holds the actual content of the file
-already converted into HTML.
-
-For example, the following RestructuredText:
-```
-:author: me
-:date: March 10th, 2019
-:_template: page.html
-
-My title
-========
-
-My content.
-```
-would be equivalent to the following JSON one:
-```JavaScript
-{
-    "author": "Me",
-    "date": "March 10th, 2019"
-    "_template": "page.html",
-    "_content": "<section id='my-title'><h1>My title</h1><p>My content.</p></section>"
-}
-```
-
-As you can see, the top metadata section is stripped out of the generated HTML
-for the file.
-
-**Note:** In the case of RestructuredText files, all the values in their
-dictionaries are always strings, while in JSON or YAML the values have the types
-supported in those formats.
-
-
-#### Project and folder data (Underscore content files)
+### Project and folder data (Underscore content files)
 
 Sometimes you may want to provide data that is share across multiple pages. For
 instance, you may want to use the same template across all the files in a
@@ -401,19 +291,20 @@ The values provided by a underscore content file have less priority than the
 ones that are provided in the files themselves. That means that if `baz.rst`
 content is:
 ```
-:_template: normal-layout.html
+---
+_template: normal-layout.html
+---
 
 My title
 ========
 
 My content.
 ```
-the final values that will be used to generate the HTML will be:
+the final data dictionary that will be used to generate the HTML will be:
 ```JavaScript
 {
     "_template": "normal-layout.html",
     "poweredby": "Spekulatio",
-    "_content": "<section id='my-title'><h1>My title</h1><p>My content.</p></section>"
 }
 ```
 
@@ -442,6 +333,30 @@ project. For example:
 
 * And you can always set exceptions by overriding values in the normal content
   files themselves.
+
+### JSON and YAML content files
+
+You can use JSON and YAML as content files, however, only ones that contain a
+top level object are allowed (that is, the top level element can't be a list,
+since it can't be converted directly into a dictionary).
+
+For example, both this JSON file:
+```JavaScript
+{
+    "_template": "page.html",
+    "author": "Me",
+    "date": "March 10th, 2019"
+}
+```
+and this YAML file:
+```yaml
+_template: "page.html"
+author: "Me"
+date: "March 10th, 2019"
+```
+will render the same result. The dictionary data generated out of them is passed
+untouched to the template, which in this case could reference `{{ data.author }}` or
+`{{ data.date }}` freely.
 
 
 ### Template files
@@ -623,7 +538,6 @@ Options:
   --build-dir TEXT     Directory for output files (default: ./build).
   --content-dir TEXT   Directory for content files (default: ./content).
   --template-dir TEXT  Directory for HTML templates (default: ./templates).
-  --no-cache           Don't check timestamps. Regenerate all files.
   --verbose            Show processing messages.
   --help               Show this message and exit.
 ```
