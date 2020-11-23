@@ -3,8 +3,9 @@ Spekulatio
 ==========
 
 Spekulatio is a very simple and flexible static site generator. It takes a
-folder of content files, which can be written using RestructuredText, JSON or
-YAML, and a folder of HTML templates, and generates a site by combining them.
+folder of content files, which can be written using RestructuredText, Markdown,
+JSON or YAML, and a folder of HTML templates, and generates a site by combining
+them.
 
 For example, if you pass the following file structure:
 ```
@@ -48,10 +49,10 @@ build/
         styles.css
 ```
 
-During the generation process, each content file (`.rst`, `.json`, `.yaml`) is
-converted into a dictionary of key/value pairs that is passed to one of the
-templates to generate the corresponding HTML file. You can define which
-templates to use per project, folder and file.
+During the generation process, each content file (`.rst`, `.md`, `.json`,
+`.yaml`) is converted into a dictionary of key/value pairs that is passed to
+one of the templates to generate the corresponding HTML file. You can define
+which templates to use per project, folder and file.
 
 Any other file in the _content_ folder will be copied over to the _build_
 folder without modification. That means that you can add images, style sheet files,
@@ -63,7 +64,7 @@ Features
 
 In a nutshell, Spekulatio supports:
 
-* RestructuredText, JSON, YAML as formats for the content files.
+* RestructuredText, Markdown, JSON, YAML as formats for the content files.
 
 * [Jinja2](http://jinja.pocoo.org/docs/2.10/templates/) syntax for template files.
 
@@ -71,7 +72,6 @@ In a nutshell, Spekulatio supports:
 
 * Automatic [SCSS](https://sass-lang.com/) compilation into CSS.
 
-*Note:* Markdown support is currently in the works.
 
 Why Spekulatio
 --------------
