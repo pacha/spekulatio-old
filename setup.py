@@ -26,6 +26,7 @@ setuptools.setup(
         "libsass>=0.19.2",
         'pyyaml>=4.2b1',
         "rst2html5>=1.10.1",
+        "markdown>=3.3.3",
     ],
     entry_points={
         'console_scripts': ['spekulatio=spekulatio.commands:create_site'],

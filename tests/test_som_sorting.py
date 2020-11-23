@@ -96,8 +96,8 @@ def test_sorting_by_field(tmp_path):
     ]
 
     som = SOM(tmp_path)
-    for node in som.iter_nodes():
-        print(node.path, node.data)
+    # for node in som.iter_nodes():
+    #     print(node.path, node.data)
     assert expected_result == som.list_names()
 
 
