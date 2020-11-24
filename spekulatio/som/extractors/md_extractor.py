@@ -3,7 +3,8 @@ import markdown
 
 from .frontmatter import parse_frontmatter
 
-def md_extractor(text):
+
+def md_extractor(text, extra_extensions=[]):
     """Extract data from Markdown content into a dictionary.
 
     The keys of the dictionary are:
@@ -18,7 +19,7 @@ def md_extractor(text):
     content, data = parse_frontmatter(text)
 
     # get body and toc
-    md = markdown.Markdown(extensions=['toc'])
+    md = markdown.Markdown(extensions=['toc'] + extra_extensions)
     body = md.convert(content)
     toc = md.toc_tokens
 
