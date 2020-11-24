@@ -1,17 +1,14 @@
-import sys
 import logging
-
+import sys
 from pathlib import Path
 
 import click
 
-from spekulatio.som import SOM
-from spekulatio.exceptions import SpekulatioError
 from spekulatio.build_file_tree import build_file_tree
-from spekulatio.build_file_tree.actions import ignore
-from spekulatio.build_file_tree.actions import compile_scss
-from spekulatio.build_file_tree.actions import render_html_factory
-
+from spekulatio.build_file_tree.actions import (compile_scss, ignore,
+                                                render_html_factory)
+from spekulatio.exceptions import SpekulatioError
+from spekulatio.som import SOM
 
 current_dir = Path(__file__).absolute().parent
 default_template_path = current_dir / 'default_templates'
@@ -28,6 +25,8 @@ default_template_path = current_dir / 'default_templates'
         help="Don't check timestamps. Regenerate all files.")
 @click.option('--verbose', default=False, is_flag=True,
         help="Show processing messages.")
+@click.option('--markdown-extensions', default=[],
+        help="Specify a list of Markdown extensions", is_flag=True)
 def create_site(build_dir, content_dir, template_dir, no_cache, verbose):
     """Create static site from content files using a set of HTML templates."""
 
