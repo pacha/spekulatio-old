@@ -7,3 +7,7 @@ lint:
 test:
 	-python3 -m pytest --disable-pytest-warnings tests/
 
+.PHONY:
+fmt:
+	black spekulatio/
+

@@ -1,7 +1,5 @@
 
-import pytest
-
-from spekulatio.som.extractors.frontmatter import parse_frontmatter
+from spekulatio.model.frontmatter import parse_frontmatter
 
 
 def test_parse_frontmatter():

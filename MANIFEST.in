@@ -1,2 +1,2 @@
-recursive-include default_templates *.html
+recursive-include data *
 include LICENSE README.md

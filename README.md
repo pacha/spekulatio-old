@@ -2,578 +2,605 @@
 Spekulatio
 ==========
 
-Spekulatio is a very simple and flexible static site generator. It takes a
-folder of content files, which can be written using RestructuredText, Markdown,
-JSON or YAML, and a folder of HTML templates, and generates a site by combining
-them.
+![Spekulatio: Static Site Generator](media/spekulatio-logo.png)
 
-For example, if you pass the following file structure:
-```
-templates/
-    a-page-layout.html
-    another-page-layout.html
-    static/
-        script.js
-        styles.css
+Spekulatio is a minimalistic static site generator and it is particularly useful
+if you want:
 
-content/
-    index.rst
-    about/
-        image.png
-        me.rst
-    articles/
-        article-1.rst
-        article-2.rst
-    some-records/
-        record-1.yml
-        record-2.yml
-        record-3.yml
-```
+* **To have total freedom to create your own HTML/CSS**: Spekulatio doesn't
+  impose any particular elements, structure or layout.
 
-The generated site will look like:
-```
-build/
-    index.html
-    about/
-        image.png
-        me.html
-    articles/
-        article-1.html
-        article-2.html
-    some-records/
-        record-1.html
-        record-2.html
-        record-3.html
-    static/
-        script.js
-        styles.css
-```
+* **To create your content using Markdown, reStructuredText, JSON or YAML**: or
+  any combination of them.
 
-During the generation process, each content file (`.rst`, `.md`, `.json`,
-`.yaml`) is converted into a dictionary of key/value pairs that is passed to
-one of the templates to generate the corresponding HTML file. You can define
-which templates to use per project, folder and file.
+* [Optionally] **Use SCSS** to write your CSS.
 
-Any other file in the _content_ folder will be copied over to the _build_
-folder without modification. That means that you can add images, style sheet files,
-JavaScript files or any other type of static files and include them directly in your
-site.
+* **To learn quickly how to use the tool**: Spekulatio is very small. There are
+  only a couple of commands to know and a handful variables to learn.
 
-Features
---------
+You can think of Spekulatio as a tool that helps you to create hand-coded sites.
+You can use plain HTML/CSS/JS to design them while providing the content with
+markup formatted files. Spekulatio also provides a templating system (Jinja2) to
+allow you to define reusable parts such as headers, footers or sidebars and the
+possibility of using SCSS to write your CSS.
 
-In a nutshell, Spekulatio supports:
-
-* RestructuredText, Markdown, JSON, YAML as formats for the content files.
-
-* [Jinja2](http://jinja.pocoo.org/docs/2.10/templates/) syntax for template files.
-
-* Rebuilding only modified files to speed up site generation.
-
-* Automatic [SCSS](https://sass-lang.com/) compilation into CSS.
-
-
-Why Spekulatio
---------------
-
-There are plenty of great static site generators out there. Some popular ones
-are:
-
-* [Sphinx](https://github.com/sphinx-doc/sphinx)
-* [Hugo](https://github.com/gohugoio/hugo)
-* [Jekyll](https://github.com/jekyll/jekyll)
-* [Pelican](https://github.com/getpelican/pelican)
-* [Lektor](https://github.com/lektor/lektor)
-
-... and many, many more.
-
-Some of them have large sets of options with many pages of documentation, and
-some of them are specialized in a particular kind of site (blog, CMS, project
-documentation site). Also some of them are based in a particular JavaScript
-technology such as React or Vue.js.
-
-Spekulatio is just agnostic about, well, everything...
-
-* It requires very little to learn. Spekulatio is very small and based around a
-  very simple concept: when you pass a content folder, some files
-  (RestructuredText, JSON and YAML) are converted to HTML and the rest of them
-  are just copied over. So, basically, all the documentation you need to learn
-  how to use the tool is this single page.
-
-* It is not intended for any kind of site in particular. It has no notion of
-  _posts_, _authors_ or _categories_. It is up to you to define which
-  information you want to have defined in each page and that is passed to the
-  template to render the final page. Creating a blog or a documentation site is
-  all the same from the point of view of the tool.
-
-* It's up to you to include this or that JavaScript or CSS framework, or none!
-  Since you write the HTML, you decide.
-
-Not having a predefined set of metadata comes with a downside. Spekulatio
-doesn't have a concept of reusable _themes_ and it is mainly intended for people
-that want to create their own, custom HTML for their project and that don't want
-to necessarily adapt their HTML to the conventions of the site generator tool.
-
-Installation
+How it works
 ------------
 
-Spekulatio requires Python 3.6.
-
-To install it you can use the Python package manager:
+A typical Spekulatio project is composed of three folders:
 ```
-pip3 install git+https://github.com/pacha/spekulatio.git#egg=spekulatio
+  content/
+  templates/
+  build/
+```
+You put your content files (eg. Markdown or reStructuredText) in the `content/`
+folder and the HTML templates (eg. one template for a single column layout and
+another for a two-column one) in `templates/` and then run:
+```
+  spekulatio build
+```
+to create the final site in `build/`.
+
+The final site is generated by Spekulatio iterating through every file in the
+`content/` folder and performing an action depending on its type:
+
+* **Markdown (`.md`), reStructuredText (`.rst`), JSON (`.json`) and YAML
+(`.yaml`) files** are converted to HTML. You can specify inside the files which
+template in `templates/` to use in each case.
+
+* **SCSS (`.scss`) files** are converted to CSS ones.
+
+* **Files whose name starts with underscore (`_`)** are skipped.
+
+* **All other files** are copied literally. This includes any static files such
+  as regular CSS files, images or JavaScript files. HTML files are also copied
+  over without modification.
+
+For example:
+```
+-------------------------------------------------------------------------
+Your content files (content/)      | Generated site (build/)
+-------------------------------------------------------------------------
+index.md                           | index.html
+another-page.md                    | another-page.html
+section/                           | section/
+  index.md                         |   index.html
+  restructuredtext-example.rst     |   restructuredtext-example.html
+static/                            | static/
+  stylesheet.scss                  |   stylesheet.css
+  image.png                        |   image.png
+_this_file_is_ignored.txt          |
+-------------------------------------------------------------------------
 ```
 
-**Note:** If you are installing the tool at the system level you may need to run
-pip with `sudo`.
+> **Note:** you can change the names and paths of the three folders using
+parameters passed to the `build` command. See the [API](#API) section below for
+details.
 
-Creating a site
+> **Note:** if you're creating your project as a repository, you may want to
+add the `build/` directory to your `.gitignore` file (or equivalent for other
+revision control systems other than Git).
+
+Starting fast
+-------------
+
+If you are starting a new project, you can execute the utility command:
+```
+  spekulatio init <project-name>
+```
+to create a basic, bare-bones file structure that you can use as a base.
+
+> **Note:** this is only a basic helper command to save time. There's nothing
+special about `init` other than creating a minimal example folder structure.
+
+Serving your site
+-----------------
+
+Once you have built your project, you can serve it with:
+```
+  spekulatio serve
+```
+This just launches an HTTP server that serves the files in the `build/`
+directory. You can connect to it by pointing your browser to
+`http://localhost:8000/`.
+
+> **Note:** you can change the port used by passing a `--port=<number>` to the
+parameter.
+
+Using templates
 ---------------
 
-This is an example of how to create a minimal site using Spekulatio.
-
-First, create the following project structure:
+If you just add Markdown or reStructuredText files and run `spekulatio build`,
+you'll see that they are converted to HTML using a very basic layout. For
+example, the file `example.md`:
 ```
-my-project/
-    build/
-    content/
-        index.rst
-    templates/
-        page.html
+An Example File
+===============
+
+This is just some content.
 ```
-
-Use this as the contents of `index.rst`:
+will be converted into:
 ```
----
-_template: "page.html"
-author: "Me"
-date: "March 10th, 2019"
----
-
-My title
-========
-
-My content.
-```
-At the top of the file, you can specify the metadata that you want to associate
-to this document using what is popularly known as *front-matter*. That is, a
-YAML snipped enclosed between three-dashes lines. Keys that start with an
-underscore have an special meaning in Spekulatio and are used to configure how
-the site will be generated. In this case, `_template` just indicates which
-template file to use to generate the HTML associated to this restructured text
-file.
-
-For the `page.html` template, you can use:
-```html
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8">
     </head>
     <body>
-        <section id="content">
-            {{ node.content }}
-        </section>
-        <section id="author">
-            Page created by {{ node.data.author }} on {{ node.data.date }}.
-        </section>
+        <h1>An Example File</h1>
+        <p>This is just some content.</p>
+    </body>
+</html>
+```
+This is because, by default, all content files are rendered into HTML
+using a very minimal default template named `spekulatio/default.html`.
+
+You can, however, write your own templates to create any layout you want.
+Spekulatio doesn't prescribe any of its parts or how they have to be defined.
+You can use pure HTML and CSS to do so.
+
+### Documents as data dictionaries
+
+The key to understand how HTML files are generated is:
+
+**Each content file (`.md` or `.rst`) is internally converted into a dictionary
+of key-value pairs. That dictionary is, then, passed to the template specified
+in a `_template` key, specified in the dictionary itself, to render the final
+HTML file.**
+
+The following example shows how a Markdown document would be converted during
+the site build process into an intermediate data dictionary:
+```
+example.md                       |  Data dictionary
+--------------------------------------------------------------------------------
+---                              |
+_template: my-project/post.html  |  {
+title: My Title                  |    "_template": "my-project/post.htmt",
+author: me                       |    "title": "My Title",
+date: Jan 31, 2021               |    "author": "me",
+---                              |    "date": "Jan 31, 2021",
+                                 |    "_content": "<h1>Header</h1>\n<p>Text</p>"
+Header                           |   }
+======                           |
+                                 |
+Some text                        |
+```
+The header of the `example.md` document is a YAML excerpt known as
+_front-matter_. It has to be surrounded by two lines containing three dashes
+(`---`) and it is a popular way in many static site generators of providing meta
+information of Markdown and reStructuredText documents. Any valid YAML, included
+nested values, can be used there.
+
+The `_template` key is used to specify which template you want to use and, if it
+is not provided, the basic default template is used. The `_content` element
+contains the body of the document already converted to HTML. Both `_template`
+and `_content` are the two most important special key names. These key names
+(all of them starting with underscore `_`) are reserved in Spekulatio and have
+two purposes:
+
+* They can be used to pass configuration parameters to the tool (like
+`_template).
+* They are automatically generated so you can use their value in templates (like
+`_content`).
+
+There are actually only a handful of those values. Check the [API](#API) section
+for a full list.
+
+As for the rest of the key-value pairs —those without a leading underscore—,
+they can be freely defined by the user and they are passed to the templates as
+they are.
+
+#### Using JSON or YAML
+
+JSON and YAML files in the `content/` directory are also rendered as HTML. The
+only difference with Markdown and reStructuredText files is that Spekulatio
+doesn't add a `_content` key in those cases.
+
+When you use JSON or YAML as content, the first level element of the file has to
+be a dictionary (having a list yields an error). That dictionary is then passed
+to the template directly.
+
+### An example template
+
+Templates are placed in the `templates/` directory. In the case of the example
+above, the path of the template from the root of the project would be:
+```
+  templates/my-project/post.html
+```
+To be used, templates are referred using their relative path to the containing
+folder. For example:
+
+* `templates/my-project/post.html` → `_template: my-project/post.html`
+* `templates/foobar.html` → `_template: foobar.html`
+
+You could, for example, write the `my-project/post.html` template like this:
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="/static/css/styles.css">
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        <div id="info">
+            <p>{{ author }}</p>
+            <p>{{ date }}</p>
+        </div>
+        <article id="content">{{ _content }}</article>
+    </body>
+</html>
+```
+As you can see, you can access the values passed to the template using
+placeholders of the form: `{{ key }}`. Spekulatio uses the **Jinja2 library** as
+template engine, and you can use any of the features it supports in your
+template. 
+
+The following are some examples of things that you can do. For a full list of
+the functionality check the official documentation page:
+
+  https://jinja.palletsprojects.com/en/2.11.x/templates/
+
+#### Iterating over elements
+
+If you have a list in the front-matter:
+```yaml
+---
+_template: foobar.html
+authors:
+  - Jane
+  - Jim
+  - John
+---
+```
+Then you can create a list of authors with:
+```html
+<ul>
+  {% for author in authors %}
+  <li>{{ author }}</li>
+  {% endfor %}
+</ul>
+```
+
+#### If statements
+
+If you have this in your content file:
+```yaml
+---
+_template: foobar.html
+banner: true
+---
+```
+You can conditionally display some part of the site:
+```html
+{% if banner %}
+<div class="my-banner">...</div>
+{% endif %}
+```
+You can also use `{% elif <condition> %}` and `{% else %}` intermediate
+statements.
+
+#### Reusing the same base layout
+
+Imagine that you want to reuse the same header and/or footer across all your
+templates. You can, then, define a base template (eg. `base.html`) like this:
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="/static/css/styles.css">
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        <header>My site</header>
+        {% block main %}
+        {% endblock %}
+    </body>
+</html>
+```
+And then, a child template (eg. `child.html`) that inherits from it:
+```html
+{% extends "base.html" %}
+
+{% block main %}
+<main class="two-cols">
+  <article>{{ _content }}</article>
+  <aside>...</aside>
+</main>
+{% endblock %}
+```
+Note that you use `{% extends <template-filename> %}` to inherit from another
+template. The name of the template file has to be passed relative to the
+`templates/` directory.
+
+If you use the child template in your content file:
+```yaml
+---
+_template: child.html
+title: My Title
+---
+
+My content
+----------
+
+...
+```
+then the whole `main.html` template will be rendered and the `main` block will
+be replaced by the one defined in `child.html`. That allow you to have multiple
+children templates that inherit from the same parent one. So if you have your
+base layout in the parent one, you can use the child ones to define different
+layouts like single-column vs multiple columns ones or each one having different
+elements altogether.
+
+Note also:
+
+* That you can pass variables to the child templates and use them in the parent
+  templates.
+* You can have multiple `block`s defined in the parent template.
+* You can have more than one level of inheritance.
+* You can also have default content for a `block` (by just adding HTML between
+  the `{% block <name> %}` and `{% endblock %}` markers) for those cases in which
+  the child template doesn't define that block in particular.
+
+Also, as stated above,
+[Jinja](https://jinja.palletsprojects.com/en/2.11.x/templates/) supports many
+more features than the ones shown here. Check Jinja official documentation to
+know more.
+
+The `_values.yaml` file
+-----------------------
+
+So far, we know how to write a template and how to pass values from the content
+files to them. However, imagine that you want to define a `site_name` variable.
+Probably, the value for this variable doesn't change for the entire site and it
+would be unpractical to have it defined in every single content file.
+
+To make a variable available to all pages under a directory, place a
+`_values.yaml` file in it. For example, you can place this `_values.yaml` file
+at the root of your site:
+```yaml
+site_name: My Site
+copyright_notice: Copyright © 2021 Me
+```
+and both `site_name` and `copyright_notice` will be available during the
+template rendering of all pages of your site.
+
+You could, then, for instance, have a base template with a footer like:
+```
+        ...
+        <footer>{{ copyright_notice }}</footer>
     </body>
 </html>
 ```
 
-This template file is used to generate the file `index.html` out of
-`index.rst` and Spekulatio passes a single object to it: ``node``.
+One cool thing in Spekulatio is that you can place this file in any directory
+and the values will be available from that point on. Take a look at this site:
 
-A node represents the page you're rendering at that moment in the content tree
-and it allows you to access the particular content of the page within the
-template:
+![Spekulatio: Static Site Generator](media/spekulatio-logo.png)
 
-* `node.content`: is the content of the RestructuredText file converted to HTML.
+The image describes five subdirectories of an example site. Inside the circles, you
+can see the name of the directories (`dir1`, `dir2`, …) and the variables that
+are set in that directory using the `_values.yaml` file. In the case of the root
+directory (`/`), `a` is set to `1` and in the case of `dir4`, `a` is set to `5`.
+That means that for all pages below root (ie. all pages of the site) the value
+of `a` will be `1` unless overridden. For all pages under `dir4`, `a` will be
+`5`. In the same way, all pages under `dir2` will have `a` and `b` set to `2`
+and `3` respectively (again, unless overridden).
 
-* `node.data`: is a dictionary with the metadata passed as front-matter (eg.
-  you can access a key `foo` with `node.data.foo`). Since metadata is very
-  frequently accessed from the template, there's a shortcut `data` passed to the
-  template too pointing to the data dictionary (ie. `data.foo` is the same as
-  `node.data.foo`).
+This means that you could set, for example, the `_template` variable so that
+all pages under `dir1` have a different layout than the pages under `dir2`.
 
-Actually, nodes represent both directories and pages of your content tree, and
-you can navigate through them using the following properties:
+> **Note:** One important thing to keep in mind is that only values that are
+defined in the `_values.yaml` are inherited. The values defined in the
+front-matter of a page only affect that particular page.
 
-* `node.parent`: parent node of the current one being rendered.
+Using this data-inheritance system, you can define which layout to use in each
+part of your application, which menus to show or what set of related links to
+display.
 
-* `node.children`: for a directory node, all children nodes
+> **Note:** In case you want to have content associated to a directory itself
+—that is, to serve a page when the user enters the URL pointing to it (eg.
+`my-domain.tld/my-directory/`)—, just add a content file named `index` with any
+of the supported extensions for content files (eg. `md` or `rst`). This will
+generate an `index.html` file that is automatically used by most HTTP servers as
+the default page when none is specified in the URL.
 
-* `node.next`: next node (breadth-first order)
+### Advanced definition of values
 
-* `node.prev`: previous node (breadth-first order)
-
-* `node.root`: root node of the content tree
-
-Accessing other nodes can be useful to build menus or breadcrumb links.
-
-Now, we're ready to generate our site using the following command:
+By default, values are inherited from the point in which they are defined and
+override any previous variable of the same name. However, Spekulatio offers an
+advanced definition syntax using two leading underscores (`__`) that allows to
+have more control over how the variable is used:
 ```
-my-project$ spekulatio
-```
-
-Since we only have one input file (`index.rst`), only one output HTML file will
-be generated:
-```
-my-project/
-    build/
-        index.html
-```
-
-Now you can open this file directly in your browser or run a small web server
-with:
-```
-my-project$ python3 -m http.server --directory ./build
+__variable_name:
+  scope: ...
+  operation: ...
+  value: ...
 ```
 
-And open your new site at: `http://localhost:8000/`
+The two leading underscores are stripped out of the variable name and the
+`value` key allows you to add the value for the variable as if it were defined
+as: `variable_name: <value>`.
 
-This example uses a single RestructuredText file as content. In the case of JSON
-or YAML files the procedure is even simpler since the whole content of the files
-is considered metadata and passed as a dictionary to the templates.
+The `scope` key defines which pages should be affected by this variables. The
+possible values are:
 
-### Project and folder data (Underscore content files)
+* `branch`: all pages from this point on are affected (ie. immediate children
+  and, recursively, all descendants). This is the default.
 
-Sometimes you may want to provide data that is share across multiple pages. For
-instance, you may want to use the same template across all the files in a
-subdirectory. Editing all the pages one by one to add the same `_template` value
-can be cumbersome, and there's a more generic way to do it.
+* `level`: only pages in this particular directory are affected (ie. only
+  immediate children). If the variable already exists, the new value will only
+  affect immediate children and pages in subdirectories under this one will see
+  the old value.
 
-Spekulatio has a particular type of content files just to solve this problem. If
-you create a content file by prepending an underscore to its name, two things
-will happen:
+* `final`: like `level` but the old value will not be passed down to pages in
+  subdirectories under this one (the variable will be undefined).
 
-* That content file will not generate any HTML associated to it.
+The `operation` key allows you to define what to do if a variable of the same
+name already exists. The possible values depend on the type of the variable:
 
-* The metadata defined in it will be shared by all the content files that are in
-  the same directory or in subdirectories of that directory.
+* `replace`: [For scalars, lists and dictionaries] If there's a variable of the
+  same name, replace its value by the new one. This is the default.
 
-For example, consider the structure:
+* `merge`: [For dictionaries] The final value is the combination of the new and
+  the old dictionaries.
+
+* `append`: [For lists] The final value is the old list with then new elements
+  appended at the end.
+
+* `delete`: [For scalars, lists and dictionaries] The variable is removed as if
+  it was not defined. You can't specify a value in this case.
+
+Examples:
+
+<table>
+  <tr>
+    <th>Prev. definition</th>
+    <th>New definition</th>
+    <th>Result</th>
+  </tr>
+  <tr>
+    <td>
+      <pre lang="yaml">
+        foobar:
+          - one
+          - two
+      </pre>
+    </td>
+    <td>
+      <pre lang="yaml">
+        __foobar:
+          operation: replace
+          value:
+            - three
+            - four
+      </pre>
+      (Same as not using the extended notation)
+    </td>
+    <td>
+      <pre lang="yaml">
+        foobar:
+          - three
+          - four
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <pre lang="yaml">
+        foobar:
+          a: 1
+          b: 2
+      </pre>
+    </td>
+    <td>
+      <pre lang="yaml">
+        __foobar:
+          operation: merge
+          value:
+            a: 5
+            c: 3
+      </pre>
+      (Same as not using the extended notation)
+    </td>
+    <td>
+      <pre lang="yaml">
+        foobar:
+          a: 5
+          b: 2
+          c: 3
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <pre lang="yaml">
+        foobar:
+          - one
+          - two
+      </pre>
+    </td>
+    <td>
+      <pre lang="yaml">
+        __foobar:
+          operation: append
+          value:
+            - three
+            - four
+      </pre>
+      (Same as not using the extended notation)
+    </td>
+    <td>
+      <pre lang="yaml">
+        foobar:
+          - one
+          - two
+          - three
+          - four
+      </pre>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <pre lang="yaml">
+        foobar: 5
+      </pre>
+    </td>
+    <td>
+      <pre lang="yaml">
+        __foobar:
+          operation: delete
+      </pre>
+      (Same as not using the extended notation)
+    </td>
+    <td>
+      (undefined)
+    </td>
+  </tr>
+</table>
+
+Since ``branch`` and ``replace`` are the default values, this definition:
 ```
-my-project/
-    content/
-        foo.rst
-        directory-1/
-            _values.json
-            bar.rst
-            directory-2/
-                baz.rst
+__foobar:
+  scope: branch
+  operation: replace
+  value: 100
 ```
-
-In this case, `_values.json` will not generate the output file
-`directory-1/_values.html` and the data defined inside it will be used when
-`bar.rst` or `baz.rst` are rendered (but not in the case of `foo.rst` since it
-is located outside `directory-1/`.
-
-So, if `_values.json` has:
+is equivalent to:
 ```
-{
-    "_template": "special-layout.html",
-    "poweredby": "Spekulatio"
-}
+foobar: 100
 ```
-both `bar.rst` and `baz.rst` will be rendered with the `special-layout.html`
-template.
-
-The name or the type of underscore files doesn't really matter for the process.
-It is only the underscore that triggers them being treated in a special manner.
-You can use any of the content types (`.rst`, `.json` or `.yaml`) to define
-them, and you can call them `_values.xxx` or use any other name that makes
-sense in the context of the project. You can even use several of them in the
-same folder too. (If you have several underscore files in the same directory
-they will be processed in alphabetical order).
-
-The values provided by a underscore content file have less priority than the
-ones that are provided in the files themselves. That means that if `baz.rst`
-content is:
+There are cases in which playing with the scope and operation is very useful.
+For instance, imagine that you want to add a CSS file only to pages of a given
+directory. If the CSS files to be used in templates are defined like this at the
+root of your site:
 ```
----
-_template: normal-layout.html
----
-
-My title
-========
-
-My content.
+stylesheets:
+  - /static/css/reset.css
+  - /static/css/my-site.css
 ```
-the final data dictionary that will be used to generate the HTML will be:
-```JavaScript
-{
-    "_template": "normal-layout.html",
-    "poweredby": "Spekulatio",
-}
+Then you can add one more CSS file to the pages of that directory by adding the
+following at its `_values.yaml` file:
 ```
-
-The same applies for two underscore files at different levels. Here:
-```
-my-project/
-    content/
-        _foo.json
-        directory-1/
-            _bar.json
-            page.rst
-```
-The values of `_foo.json` have less precedence than `_bar.json`. And `page.rst`
-will inherit the values from `_foo.json`, then from `_bar.json` and finally use
-their own in order of increasing priority.
-
-Underscore content files are a very flexible mechanism to configure your
-project. For example:
-
-* You can place a underscore file at the root of the project for values that are
-  global to the project, like `author` or `copyright`.
-
-* You can use underscore files to set the template to use in different
-  directories. For example you can have a folder with blog posts using a
-  template and another folder "pages" using a different one.
-
-* And you can always set exceptions by overriding values in the normal content
-  files themselves.
-
-### JSON and YAML content files
-
-You can use JSON and YAML as content files, however, only ones that contain a
-top level object are allowed (that is, the top level element can't be a list,
-since it can't be converted directly into a dictionary).
-
-For example, both this JSON file:
-```JavaScript
-{
-    "_template": "page.html",
-    "author": "Me",
-    "date": "March 10th, 2019"
-}
-```
-and this YAML file:
-```yaml
-_template: "page.html"
-author: "Me"
-date: "March 10th, 2019"
-```
-will render the same result. The dictionary data generated out of them is passed
-untouched to the template, which in this case could reference `{{ data.author }}` or
-`{{ data.date }}` freely.
-
-
-### Template files
-
-Template files are written using the
-[Jinja2](http://jinja.pocoo.org/docs/2.10/templates/) syntax.
-
-To create the templates you can use any of the features provided by Jinja2 such
-as template inheritance, control structures (for loops or if statements) or
-filters.
-
-To know which template to use in each case:
-
-* Spekulatio checks for the key `_template` in the metadata of each input file.
-
-* If the key is present and a template of that name exists in the _templates_
-  folder provided by the user, then the HTML is generated using the data of the
-  content file. If a template of that name doesn't exist then an error is
-  raised.
-
-* If the `_template` key is not present, then the default `layout.html` name is
-  used. If a template with that name is present in the _templates_ folder of
-  the user, then that template is used. If not, then Spekulatio will use a
-  default template that just creates an HTML listing all the data entries of
-  the content file.
-
-### Static files
-
-Any file that is not a content file is considered by Spekulatio a _static_ file.
-
-Static files are just copied over to the _build_ directory without
-transformation but keeping their relative path with respect to the one in their
-original directory.
-
-That means that you can add any image, style sheet or JavaScript file to your
-project. Spekulatio doesn't really mind too much about the file types, so be
-aware that if you add any unrelated file, anywhere in your project _content_
-folder, it will still be copied to the _build_ folder regardless of its type.
-
-For example, the following structure:
-```
-my-project/
-    content/
-        static/
-            foo.png
+__foobar:
+  scope: level
+  operation: append
+  value:
+    - /static/css/some-changes.css
 ```
 
-will generate:
+Reference
+---------
+
+### Commands
+
 ```
-my-project/
-    build/
-        static/
-            foo.png
+spekulatio build [--content-dir=./content] [--template-dir=./templates] [--build-dir=./build] [--no-cache]
 ```
+Build site. ``--template-dir`` can appear multiple times.
 
-One important thing is that static files are copied over both the _templates_
-and the _content_ folders. That means that you can have static files that are
-directly used in your templates together with them and add static files that are
-referenced from your content files together with the content files.
-
-For example:
-```
-my-project/
-    templates/
-        my-template.html
-        static/
-            script.js
-            styles.css
-
-    content/
-        static/
-            foo.png
-        directory-1/
-            page.rst
-            directory-2/
-                baz.png
-```
-
-will generate:
-```
-my-project/
-    build/
-        static/
-            script.js
-            styles.css
-            foo.png
-        directory-1/
-            page.html
-            directory-2/
-                baz.png
-```
-
-Note that:
-
-* Paths are merged. So if you have a `static/` directory in the _templates_
-  folder **and** in the _content_ folder. You'll end up with a single `static/`
-  directory in the output.
-
-* Content static files have preference over template static files. That is, if
-  you have a static file with the same path in both the _templates_ folder and
-  the _content_ one, the content one will overwrite the one from _templates_.
-  (This allows you to override some aspects of the templates folder in case you
-  want to reuse it for several projects).
-
-* Static files can be placed anywhere in the file tree, having them or not in a
-  `static/` folder is just a matter of preference of the site creator.
-
-To reference static files from the template or content files, just use absolute
-paths from the site root (note the starting slash `/`):
-```html
-    <img src="/static/foo.png">
-```
-
-Or relative paths from the location of the content file. For instance, in the
-`page.rst` file or the previous example, you could reference `baz.png` as (note
-the missing slash at the beginning):
-```
-.. image:: directory-2/baz.jpg
-```
-
-#### Adding HTML as static files
-
-One peculiarity of the static file handling in Spekulatio is that in the
-_templates_ folder any type other than HTML is considered static, while in the
-_content_ folder that is the case for any file other than RestructuredText, JSON
-or YAML.
-
-That means that if you place HTML files in your _content_ folder, they will be
-copied to the _build_ folder untouched. This is useful when you don't want
-to generate some HTML pages of your site out of content files but you want to
-provide the final HTML to be used in the site yourself. (You can also do this by
-adding the HTML file to the _templates_ folder and adding a dummy content file
-without any data other than `_template` pointing to that HTML).
-
-In the same way, if you add JSON or YAML files to the _templates_ folder, they
-will be copied as they are to the _build_ folder.
-
-#### SCSS support
-
-Most static files are just copied over the _build_ directory. An exception to
-this rule is [Sass](https://sass-lang.com/) files with the SCSS syntax.
-
-Spekulatio offers compiling support for this CSS extension. Therefore, when it
-finds a `.scss` file, instead of just copying it, it compiles it and saves the
-`.css` result to the _build_ directory.
-
-That means that, if you want to reference a `.scss` file from your templates,
-you have to use the `.css` filename directly in the HTML.
-
-For example, the input structure:
-```
-my-project/
-    content/
-        static/
-            foo.scss
-```
-will generate:
-```
-my-project/
-    build/
-        static/
-            foo.css
-```
-
-And any template using that style sheet can reference it like:
-```html
-<link rel="stylesheet" href="/static/foo.css">
-```
-
-## Command line reference
-
-Spekulatio provides a single command:
-```
-Usage: spekulatio [OPTIONS]
-
-  Create static site from content files using a set of HTML templates.
-
-Options:
-  --build-dir TEXT     Directory for output files (default: ./build).
-  --content-dir TEXT   Directory for content files (default: ./content).
-  --template-dir TEXT  Directory for HTML templates (default: ./templates).
-  --verbose            Show processing messages.
-  --help               Show this message and exit.
-```
-
-Basically, you just have to pass where are your content files (`content-dir`),
-your template files (`template-dir`) and where you want your site to be
-generated (`build-dir`).
-
-However if you set your project structure so that the default names are used:
-```
-my-project/
-    build/
-    content/
-    templates/
-```
-
-Then to generate the site, you only have to run the command without passing any options:
-```
-my-project$ spekulatio
-```
-
-Spekulatio keeps track of timestamps of generated files and only recreates those
-pages for which the original content file was modified. However, if you change
-your templates, you may want to force the recreation of all output files to be able to
-see the changes. You can do so with the option: `--no-cache`.
-
-Once your site is generated you'll have all the output HTML files in the
-`build/` directory (or the one you have specified). To check your site, you can
-serve it locally with:
-```
-my-project$ python3 -m http.server --directory ./build
-```
-Then you should be able to browse your site at: `http://localhost:8000`.
-
-*Note:* You can also just directly open the HTML files in your browser from the
-file system. However, be aware that, in this case, any URL that is written as an
-absolute path from the root of the site (eg. `/static/my-image.png`) will not
-work.
+By default, cache is used, which means that only pages that are modified are
+regenerated. Passing ``--no-cache`` regenerates all files (**Caution! all contents
+of ``--build-dir`` are deleted in this case!**).
 

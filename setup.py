@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="spekulatio",
-    version="0.9.1",
+    version="1.0.0",
     author="Andrés Sopeña Pérez",
     author_email="asopena@ehmm.org",
     description="A simple but flexible static site generator.",
@@ -27,9 +27,18 @@ setuptools.setup(
         'pyyaml>=4.2b1',
         "rst2html5>=1.10.1",
         "markdown>=3.3.3",
+        "coloredlogs>=15.0",
     ],
+    extras_require={
+        'dev': [
+            'pytest',
+            'black',
+        ]
+    },
     entry_points={
-        'console_scripts': ['spekulatio=spekulatio.commands:create_site'],
+        'console_scripts': [
+            'spekulatio=spekulatio.commands:spekulatio',
+        ],
     }
 )
 
