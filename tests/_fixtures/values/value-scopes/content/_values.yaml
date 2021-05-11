@@ -1,0 +1,15 @@
+
+__local_var:
+  scope: local
+  value: 2
+
+__level_var:
+  scope: level
+  value: 3
+
+__branch_var:
+  scope: branch
+  value: 4
+
+default_syntax_var: 1
+

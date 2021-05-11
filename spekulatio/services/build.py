@@ -1,7 +1,8 @@
 import logging as log
 
-from spekulatio.model import Site
-from spekulatio.model import ActionMap
+from spekulatio.models import Site
+from spekulatio.models.filetrees import content_conf
+from spekulatio.models.filetrees import template_conf
 
 
 def build(build_path, content_path, template_paths, only_modified):
@@ -19,41 +20,20 @@ def build(build_path, content_path, template_paths, only_modified):
     # Gathering info from template directories
     for template_path in template_paths:
         log.info(f"Reading template directory: {template_path}")
-        site.from_directory(
-            template_path,
-            ActionMap(
-                [
-                    ("underscore_file", "ignore"),
-                    ("scss", "compile_css"),
-                    ("html", "ignore"),
-                    ("any", "copy"),
-                ]
-            ),
-        )
+        site.from_directory(template_path, template_conf)
 
     # Gathering info from content directory
     log.info(f"Reading content directory: {content_path}")
-    site.from_directory(
-        content_path,
-        ActionMap(
-            [
-                ("values_file", "process_values"),
-                ("underscore_file", "ignore"),
-                ("html", "render"),
-                ("rst", "render"),
-                ("md", "render"),
-                ("json", "render"),
-                ("yaml", "render"),
-                ("scss", "compile_css"),
-                ("any", "copy"),
-            ]
-        ),
-    )
+    site.from_directory(content_path, content_conf)
 
-    log.info("Reading values and sorting nodes...")
-    site.setup_nodes()
+    log.info("Sorting nodes...")
+    site.sort()
+
+    log.info("Setting node relationships...")
+    site.set_relationships()
 
     log.info("Writing files to build directory...")
     site.build()
 
     site.display_tree()
+
