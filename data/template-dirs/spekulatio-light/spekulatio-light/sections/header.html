@@ -1,0 +1,19 @@
+<header>
+    <nav id="project-id">
+        <a href="/">{% if site.logo %}<img src="{{ site.logo }}" alt="{{ site.name }}">{% endif %} {{ site.name }}</a>
+    </nav>
+
+    {# main menu (shown in desktop) #}
+    <nav id="main-menu-desktop">
+        {% for child in _node.root.children %}
+        <a {{ 'class=active' if section == child.data.section }} href="{{ child.url }}">{{ child.title }}</a>
+        {% endfor %}
+    </nav>
+
+    {# hamburger menu (shown in mobile) #}
+    <nav class="main-menu-mobile">
+        <a href="javascript:;" onclick="toggleVisibility('primary-navigation-mobile')">
+            <svg class="menu-icon"><use xlink:href="/static/icons/feather-sprite.svg#menu"/></svg>
+        </a>
+    </nav>
+</header>

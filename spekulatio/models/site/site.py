@@ -1,4 +1,5 @@
 import re
+import json
 import logging as log
 from pathlib import Path
 
@@ -52,7 +53,7 @@ class Site:
     def from_directory(self, directory_path, filetree_conf):
         # use as jinja template directory if configured as such
         if filetree_conf.template_dir:
-            self.template_dirs.append(directory_path)
+            self.template_dirs.insert(0, directory_path)
 
         # create the node tree recursively
         self.root = self._from_path(directory_path, directory_path, filetree_conf, parent=None)
@@ -86,9 +87,19 @@ class Site:
         old_node = self.nodes.get(node.url)
         if old_node:
 
-            # branch and level data is passed to the new node
-            node.branch_data = old_node.branch_data
-            node.level_data = old_node.level_data
+            # check that the ouput is not ambiguous
+            same_src_root = node.src_root == old_node.src_root
+            different_relative_path = node.relative_src_path != old_node.relative_src_path
+            if same_src_root and different_relative_path:
+                raise SpekulatioReadError(
+                    f"Ambiguous input both: '{node.relative_src_path}' and "
+                    f"'{old_node.relative_src_path}' at '{node.src_root}' generate the same "
+                    f"output file '{node.relative_dst_path}'. Add only one input file for "
+                    "each associated output file."
+                )
+
+            # default data is always copied over
+            node.default_data = old_node.default_data
 
             # children are also inherited
             node.children = old_node.children
@@ -204,7 +215,7 @@ class Site:
                 'default_template': 'spekulatio/default.html',
             },
             '_md_options': {
-                'extensions': ['toc'],
+                'extensions': ['toc', 'fenced_code'],
             },
             '_rst_options': {
                 'settings_overrides': {
@@ -225,9 +236,16 @@ class Site:
 
     def _get_jinja_env(self):
         """Initialize templating environment."""
+
+        def print_as_json(dictionary):
+            return json.dumps(dictionary, indent=2)
+
         template_dirs = [str(template_dir.absolute()) for template_dir in self.template_dirs]
         loader = jinja2.FileSystemLoader(template_dirs, followlinks=True)
         jinja_env = jinja2.Environment(loader=loader)
+
         jinja_env.globals.update(get_node=lambda url: self.nodes[url])
+        jinja_env.globals.update(print_as_json=print_as_json)
+
         return jinja_env
 

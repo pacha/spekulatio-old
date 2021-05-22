@@ -4,8 +4,10 @@ from pprint import pprint
 
 from jinja2.exceptions import TemplateNotFound
 
+from spekulatio.exceptions import SpekulatioSkipExtraction
 from spekulatio.exceptions import SpekulatioReadError
 from spekulatio.exceptions import SpekulatioValueError
+from spekulatio.exceptions import SpekulatioBuildError
 from spekulatio.models.values import Value
 from spekulatio.models.filetrees import get_category
 
@@ -31,10 +33,12 @@ class Node:
         self.next_sibling = None
         self.prev_sibling = None
 
-        # local_data is the effective data passed to the template.
-        # When a value is defined as 'local' is not passed down to any other node
-        # and overrides any other previous definition
-        self.local_data = {}
+        # data is the effective data passed to the template.
+        # It combines data from all the scopes. When a value is defined as
+        # 'local' it is just included here.
+        # This is the only dictionary not used to pass values down to other
+        # nodes in the tree.
+        self.data = {}
 
         # level_data applies only to the current node and its children
         # it overrides branch_data
@@ -44,17 +48,18 @@ class Node:
         # it's overriden by both level and local data
         self.branch_data = {}
 
+        # default_data is passed from one node to its overridding one.
+        # It's used to define values in templates that are applied to the content tree
+        self.default_data = {}
+
+
     @property
     def name(self):
         return self.relative_dst_path.name
 
     @property
-    def data(self):
-        return self.local_data
-
-    @property
     def user_data(self):
-        return {key: value for key, value in self.local_data.items() if not key.startswith('_')}
+        return {key: value for key, value in self.data.items() if not key.startswith('_')}
 
     @property
     def category(self):
@@ -63,6 +68,13 @@ class Node:
     @property
     def url(self):
         return f"{Path('/') / self.relative_dst_path}"
+
+    @property
+    def title(self):
+        try:
+            return self.data['_title']
+        except AttributeError:
+            return self.url
 
     @property
     def src_path(self):
@@ -94,8 +106,8 @@ class Node:
         pprint(self.branch_data)
         print("--level_data:")
         pprint(self.level_data)
-        print("--local_data:")
-        pprint(self.local_data)
+        print("--data:")
+        pprint(self.data)
 
     def __repr__(self):
         return f"<Node: {self.name}>"
@@ -109,7 +121,10 @@ class Node:
         """Take user values and store then in the node."""
 
         # get values for this node (from a _values.yaml file or a frontmatter)
-        data_dict = self.action.extract(self)
+        try:
+            data_dict = self.action.extract(self)
+        except SpekulatioSkipExtraction:
+            return
 
         # convert raw values to value objects
         try:
@@ -117,20 +132,39 @@ class Node:
         except Exception as err:
             raise SpekulatioReadError(f"Wrong values at '{self.src_path}': {err}")
 
-        # branch values
+        # sources for data:
+        #
+        # - Inheritance:   branch_data, local_data (ie. directly stored in data)
+        # - Node creation: default_data, branch_data
+        # - Node values:   default_data, branch_data, level_data, local_data (ie. directly stored in data)
+        #
+
+        # set values from parent
         if self.parent:
             self.branch_data.update(self.parent.branch_data)
+            self.data.update(self.parent.branch_data)
+            self.data.update(self.parent.level_data)
+
+        # get values from overriden node
+        self._update_data(values['default'], self.default_data)
+        self._update_data(values['default'], self.data)
+
+        # set values from node creation
+        self.branch_data.update(self.default_data)
+        self.data.update(self.default_data)
+        self.data.update(self.branch_data)
+
+        # set branch values
         self._update_data(values['branch'], self.branch_data)
+        self._update_data(values['branch'], self.data)
 
         # level values
-        self.level_data.update(self.branch_data)
         self._update_data(values['level'], self.level_data)
+        self._update_data(values['level'], self.data)
 
         # local values
-        self.local_data.update(self.level_data)
-        if self.parent:
-            self.local_data.update(self.parent.level_data)
-        self._update_data(values['local'], self.local_data)
+        self._update_data(values['local'], self.data)
+
 
     @staticmethod
     def _update_data(values, data):
@@ -155,14 +189,20 @@ class Node:
                             "Destination value not of type {target_type}."
                         )
                     if value.operation == 'merge':
-                        old_value.update(value.value)
+                        new_dict = {}
+                        new_dict.update(old_value)
+                        new_dict.update(value.value)
+                        data[value.name] = new_dict
                     else:
-                        old_value.extend(value.value)
+                        data[value.name] = old_value + value.value
             elif value.operation == 'delete':
                 try:
                     del data[value.name]
                 except KeyError:
-                    pass
+                    log.warning(
+                        f" {self.relative_dst_path} is trying to delete "
+                        f"value '{value.name}' but such value doesn't exist."
+                    )
 
     def sort(self):
         """Sort nodes recursively.
@@ -184,8 +224,8 @@ class Node:
 
         # get sorting options
         try:
-            sorting_field = self.local_data['_sort_options']['field']
-            sorting_reverse = self.local_data['_sort_options']['reverse']
+            sorting_field = self.data['_sort_options']['field']
+            sorting_reverse = self.data['_sort_options']['reverse']
         except KeyError:
             raise SpekulatioValueError(
                 f"{self.src_path}: incomplete sorting options. "
@@ -193,7 +233,7 @@ class Node:
             )
 
         # get user's list of sorting values
-        sorting_values = self.local_data.get('_sort', [])
+        sorting_values = self.data.get('_sort', [])
 
         # create a map of child nodes for fast access
         try:
@@ -291,14 +331,14 @@ class Node:
 
         # get parameters from configuration
         try:
-            default_template = self.local_data['_jinja_options']['default_template']
+            default_template = self.data['_jinja_options']['default_template']
         except KeyError:
             raise SpekulatioValueError(
                 f"{self.src_path}: missing 'default_template' in '_jinja_options'"
             )
 
         # get template
-        template_name = self.local_data.get("_template", default_template)
+        template_name = self.data.get("_template", default_template)
         try:
             template = jinja_env.get_template(template_name)
         except TemplateNotFound:
@@ -307,7 +347,12 @@ class Node:
             )
 
         # write content
-        content = template.render(_node=self, **self.local_data)
+        try:
+            content = template.render(_node=self, **self.data)
+        except Exception as err:
+            raise SpekulatioBuildError(
+                f"{self.src_path}: {err} in template '{template_name}'."
+            )
 
         return content
 

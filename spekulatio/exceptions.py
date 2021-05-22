@@ -1,3 +1,8 @@
+
+class SpekulatioSkipExtraction(Exception):
+    """Don't process values for this node (eg. static files)"""
+    pass
+
 class SpekulatioError(Exception):
     pass
 

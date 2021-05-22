@@ -1,0 +1,9 @@
+
+__default_var1:
+  scope: default
+  value: 1
+
+__default_var2:
+  scope: default
+  value: 2
+

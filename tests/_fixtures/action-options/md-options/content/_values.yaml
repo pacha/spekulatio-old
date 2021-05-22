@@ -1,0 +1,7 @@
+
+_md_options:
+  extensions:
+    - toc
+    - fenced_code
+    - admonition
+

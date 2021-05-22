@@ -30,6 +30,7 @@ def parse_frontmatter(text):
         the text without the frontmatter.
     """
 
+
     # check if the document has a frontmatter section
     match = FRONTMATTER_PATTERN.fullmatch(text)
     if not match:
@@ -41,7 +42,7 @@ def parse_frontmatter(text):
 
     # parse frontmatter
     try:
-        metadata = yaml.safe_load(frontmatter)
+        metadata = yaml.safe_load(frontmatter) or {}
     except Exception as err:
         raise SpekulatioFrontmatterError(f"Can't parse YAML in frontmatter: {err}")
 

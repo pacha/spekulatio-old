@@ -10,6 +10,7 @@ class Value:
         "local",
         "level",
         "branch",
+        "default",
     ]
 
     operations = [
@@ -20,14 +21,27 @@ class Value:
     ]
 
     underscore_keys = {
-        "_template": {"scope": "branch", "operation": "replace", "type": str},
+        # input 
+        "_template": {"scope": "default", "operation": "replace", "type": str},
         "_sort": {"scope": "local", "operation": "replace", "type": list},
-        "_sort_options": {"scope": "branch", "operation": "merge", "type": dict},
-        "_jinja_options": {"scope": "branch", "operation": "merge", "type": dict},
-        "_rst_options": {"scope": "branch", "operation": "merge", "type": dict},
-        "_md_options": {"scope": "branch", "operation": "merge", "type": dict},
+        "_sort_options": {"scope": "default", "operation": "merge", "type": dict},
+        "_jinja_options": {"scope": "default", "operation": "merge", "type": dict},
+        "_rst_options": {"scope": "default", "operation": "merge", "type": dict},
+        "_md_options": {"scope": "default", "operation": "merge", "type": dict},
+        "_sass_options": {"scope": "default", "operation": "merge", "type": dict},
+
+        # output
+        "_title": {"scope": "local", "operation": "replace", "type": str},
+        "_toc": {"scope": "local", "operation": "replace", "type": list},
+        "_content": {"scope": "local", "operation": "replace", "type": str},
         "_src_text": {"scope": "local", "operation": "replace", "type": str},
     }
+
+    output_underscore_keys = [
+        "_title",
+        "_toc",
+        "_content",
+    ]
 
     def __init__(self, key, raw_value):
         """A value defined by the user.
@@ -41,16 +55,16 @@ class Value:
         When key is of the form '__key', raw_value must be a dictionary:
 
             {
-                'scope': (local|level|branch) [default: branch]
+                'scope': (local|level|branch|default) [default: branch]
                 'operation': (replace|merge|append|delete) [default: replace]
-                'value': (the actual value) [mandatory]
+                'value': (the actual value) [mandatory except for 'delete']
             }
         """
         # check if it is key for advanced syntax
         if key.startswith("__"):
             self._validate_two_underscores(key, raw_value)
             self.name = key[2:]
-            self.value = raw_value["value"]
+            self.value = raw_value.get("value")
             self.scope = raw_value.get("scope", "branch")
             self.operation = raw_value.get("operation", "replace")
         elif key.startswith("_"):
@@ -68,6 +82,7 @@ class Value:
     @classmethod
     def get_values_from_dict(cls, dictionary):
         values = {
+            'default': [],
             'branch': [],
             'level': [],
             'local': [],
@@ -91,20 +106,22 @@ class Value:
             if "operation" not in raw_value or raw_value["operation"] != "delete":
                 raise SpekulatioValueError(f"Key '{key}' must provide a 'value' field.")
 
-        if "scope" in raw_value:
-            scope = raw_value["scope"]
-            if scope not in self.scopes:
-                valid_scopes = ", ".join(self.scopes)
-                raise SpekulatioValueError(
-                    f"Scope '{scope}' not one of {valid_scopes} in key '{key}'."
-                )
-        if "operation" in raw_value:
-            operation = raw_value["operation"]
-            if operation not in self.operations:
-                valid_operations = ", ".join(self.operations)
-                raise SpekulatioValueError(
-                    f"Operation '{operation}' not one of {valid_operations} in key '{key}'."
-                )
+        # check scope
+        scope = raw_value.get("scope", "branch")
+        if scope not in self.scopes:
+            valid_scopes = ", ".join(self.scopes)
+            raise SpekulatioValueError(
+                f"Scope '{scope}' not one of {valid_scopes} in key '{key}'."
+            )
+
+        # check operation
+        operation = raw_value.get("operation", "replace")
+        if operation not in self.operations:
+            valid_operations = ", ".join(self.operations)
+            raise SpekulatioValueError(
+                f"Operation '{operation}' not one of {valid_operations} in key '{key}'."
+            )
+        if operation != "delete":
             value = raw_value["value"]
             if operation == "merge" and not isinstance(value, dict):
                 raise SpekulatioValueError(

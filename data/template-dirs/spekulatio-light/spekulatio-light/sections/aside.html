@@ -1,0 +1,24 @@
+<aside>
+    <nav id="secondary-navigation" aria-labelledby="secondary-navigation">
+
+        {# menu entries #}
+        <ul class="menu-first-level">
+            {% for child in _node.parent.children %}
+            <li>
+                <a href="{{ child.url }}">{{ child.title }}</a>
+                {% if aside_two_levels and child.children %}
+                <ul class="menu-second-level">
+                    {% for grandchild in child.children %}
+                    <li>
+                        <a href="{{ grandchild.url }}">{{ grandchild.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+    </nav>
+</aside>

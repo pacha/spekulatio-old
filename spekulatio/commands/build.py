@@ -19,16 +19,26 @@ from spekulatio.exceptions import SpekulatioError
 @click.option(
     "-c",
     "--content-dir",
-    default="./content",
-    help="Directory for content files (default: ./content).",
+    "content_dirs",
+    multiple=True,
+    default=[],
+    help="Add directory for content files (default: ./content).",
 )
 @click.option(
     "-t",
     "--template-dir",
     "template_dirs",
-    default=["./templates"],
     multiple=True,
-    help="Directory for HTML templates (default: ./templates).",
+    default=[],
+    help="Add directory for HTML templates (default: ./templates).",
+)
+@click.option(
+    "-d",
+    "--data-dir",
+    "data_dirs",
+    multiple=True,
+    default=[],
+    help="Add directory for data files (default: ./data).",
 )
 @click.option(
     "--only-modified",
@@ -37,12 +47,12 @@ from spekulatio.exceptions import SpekulatioError
     help="Regenerate only static and content files that have been modified.",
 )
 @click.option(
-    "--verbose", default=False, is_flag=True, help="Show processing messages."
+    "-v", "--verbose", default=False, is_flag=True, help="Show processing messages."
 )
 @click.option(
-    "--very-verbose", default=False, is_flag=True, help="Show debug information."
+    "-vv", "--very-verbose", default=False, is_flag=True, help="Show debug information."
 )
-def build(build_dir, content_dir, template_dirs, only_modified, verbose, very_verbose):
+def build(build_dir, content_dirs, template_dirs, data_dirs, only_modified, verbose, very_verbose):
     """Build site."""
 
     # configure logging
@@ -65,45 +75,86 @@ def build(build_dir, content_dir, template_dirs, only_modified, verbose, very_ve
     build_path = Path(build_dir)
     try:
         build_path.mkdir(parents=True, exist_ok=True)
-    except FileExistsError:
-        log.error(f"Can't create build directory '{build_dir}': name already in use")
-        sys.exit(1)
     except PermissionError:
         log.error(f"Can't create build directory '{build_dir}': permission error")
         sys.exit(1)
 
-    # check content directory
-    log.info(f"Content directory: {content_dir}")
-    content_path = Path(content_dir)
-    if not content_path.is_dir():
-        log.error(f"Content directory '{content_path}' not found.")
-        sys.exit(1)
+    # define relevant paths
+    current_path = Path('.')
+    spekulatio_path = Path(__file__).absolute().parent.parent.parent
+    spekulatio_templates_path = spekulatio_path / 'data' / "template-dirs"
 
-    # check template directories
+    # check input directories
+    content_paths = []
     template_paths = []
-    for template_dir in template_dirs:
-        template_path = Path(template_dir)
-        if not template_path.is_dir():
-            # if the default template directory is not present, it is just a warning
-            if template_dir == "./templates":
-                continue
-            else:
-                log.error(f"Template directory '{template_path}' not found.")
+    data_paths = []
+    if any([content_dirs, template_dirs, data_dirs]):
+
+        # content dirs
+        for content_dir in content_dirs:
+            content_path = Path(content_dir)
+            if not content_path.is_dir():
+                log.error(f"Content directory '{content_dir}' not found.")
                 sys.exit(1)
-        template_paths.append(template_path)
+            content_paths.append(content_path)
+            log.info(f"Added content directory: {content_path}")
 
-    # add default template directory
-    current_path = Path(__file__).absolute().parent.parent.parent
-    default_template_path = current_path / 'data' / "default_templates"
-    template_paths.append(default_template_path)
+        # template dirs
+        for template_dir in template_dirs:
+            for root_path in [current_path, spekulatio_templates_path]:
+                template_path = root_path / template_dir
+                if template_path.is_dir():
+                    template_paths.append(template_path)
+                    log.info(f"Added template directory: {template_path}")
+                    break
+            else:
+                log.error(f"Template directory '{template_dir}' not found.")
+                sys.exit(1)
 
-    # log all template directories
-    for template_path in template_paths:
-        log.info(f"Added template directory: {template_path}")
+        # data dirs
+        for data_dir in data_dirs:
+            data_path = Path(data_dir)
+            if not data_path.is_dir():
+                log.error(f"Data directory '{data_dir}' not found.")
+                sys.exit(1)
+            data_paths.append(data_path)
+            log.info(f"Added data directory: {data_path}")
+
+    else:
+
+        # default content
+        default_content_path = Path("./content")
+        if default_content_path.is_dir():
+            content_paths.append(default_content_path)
+            log.info(f"Added content directory: {default_content_path}")
+
+        # default templates
+        default_template_path = Path("./templates")
+        if default_template_path.is_dir():
+            template_paths.append(default_template_path)
+            log.info(f"Added template directory: {default_template_path}")
+
+        # default data
+        default_data_path = Path("./data")
+        if default_data_path.is_dir():
+            data_paths.append(default_data_path)
+            log.info(f"Added data directory: {default_data_path}")
+
+        if not any([content_paths, template_paths, data_paths]):
+            log.error(
+                "No input directories provided and none of the default ones "
+                "('content', 'templates' or 'data') found in current directory."
+            )
+            sys.exit(1)
+
+    # add default Spekulatio's default templates
+    spekulatio_default_template_path = spekulatio_templates_path / "spekulatio-default"
+    template_paths.insert(0, spekulatio_default_template_path)
+    log.info(f"Added template directory: {spekulatio_default_template_path} with the lowest priority.")
 
     # finally: build site
     try:
-        services.build(build_path, content_path, template_paths, only_modified)
+        services.build(build_path, content_paths, template_paths, data_paths, only_modified)
     except SpekulatioError as err:
         log.error(f"{err}")
         sys.exit(1)

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Spekulatio: {{ _node.url }}</title>
+
+        <style>
+            html
+            {
+                color: #333333;
+                font: 16px/1.4 Helvetica, Arial, sans-serif;
+            }
+
+            #wrapper
+            {
+                margin: 4vw auto;
+                width: 80vw;
+            }
+
+            .large-field
+            {
+                background-color: #F2F2F2;
+                padding: 1vw;
+            }
+
+            pre
+            {
+                margin: 0;
+            }
+
+            dl
+            {
+                display: grid;
+                grid-template-columns: max-content auto;
+                grid-column-gap: 10px;
+                grid-row-gap: 5px;
+                align-items: start;
+            }
+
+            dt
+            {
+                font-weight: bold;
+                font-size: 0.9em;
+                justify-self: end;
+                padding: 2px 4px;
+                margin: 0;
+            }
+
+            dd
+            {
+                background-color: #F2F2F2;
+                font: 16px/1.4 monospace;
+                padding: 2px 4px;
+                margin: 0;
+            }
+
+            dd > p
+            {
+                margin: 0;
+            }
+        </style>
+
+    </head>
+    <body>
+        <div id="wrapper">
+            <h1>Spekulatio: template debugging page</h1>
+            <h2>Node: {{ _node.url }}</h2>
+
+            <dl>
+                <dt>Action</dt>
+                <dd>{{ _node.action.__name__.split('.')[-1] | escape }}</dd>
+            </dl>
+
+            <h3>Paths</h3>
+            <dl>
+                <dt>Source root</dt>
+                <dd>{{ _node.src_root }}</dd>
+
+                <dt>Source path</dt>
+                <dd>{{ _node.relative_src_path }}</dd>
+
+                <dt>Destination path</dt>
+                <dd>{{ _node.relative_dst_path }}</dd>
+            </dl>
+
+            <h3>Relationships</h3>
+            <dl>
+                <dt>Root</dt>
+                <dd>{{ _node.root.url }}</dd>
+
+                <dt>Parent</dt>
+                <dd>{{ _node.parent.url }}</dd>
+
+                <dt>Previous sibling</dt>
+                <dd>{{ _node.prev_sibling.url if _node.prev_sibling else '(none)' }}</dd>
+
+                <dt>Next sibling</dt>
+                <dd>{{ _node.next_sibling.url if _node.next_sibling else '(none)' }}</dd>
+
+                <dt>Previous node</dt>
+                <dd>{{ _node.prev.url if _node.prev else '(none)' }}</dd>
+
+                <dt>Next node</dt>
+                <dd>{{ _node.next.url if _node.next else '(none)' }}</dd>
+
+                <dt>Children</dt>
+                <dd>
+                    {% if _node.children %}
+                    <ul>
+                    {% for child in _node.children %}
+                        <li>{{ child.url }}</li>
+                    {% endfor %}
+                    </ul>
+                    {% else %}
+                    (none)
+                    {% endif %}
+                </dd>
+            </dl>
+
+            <h3>Values</h3>
+            <dl>
+            {% for key, value in _node.data.items() %}
+                {% if not key.startswith('_') %}
+                <dt>{{ key }}</dt>
+                <dd>{{ value }}</dd>
+                {% endif  %}
+            {% endfor %}
+            </dl>
+
+            <h3>Special values</h3>
+            <dl>
+            {% for key, value in _node.data.items() %}
+                {% if key.startswith('_') and key not in ('_content', '_src_text', '_toc') %}
+                <dt>{{ key }}</dt>
+                <dd><pre>{{ print_as_json(value) }}</pre></dd>
+                {% endif  %}
+            {% endfor %}
+            </dl>
+
+            <h3>_content</h3>
+            <div class="large-field">
+                {{ _content or '(none)' }}
+            </div>
+
+            <h3>_src_text</h3>
+            <div class="large-field">
+                {{ _src_text or '(none)' }}
+            </div>
+
+            <h3>_toc</h3>
+            <div class="large-field">
+                <pre>{{ print_as_json(_toc) if _toc else '(none)' }}</pre>
+            </div>
+        </div>
+    </body>
+</html>
+

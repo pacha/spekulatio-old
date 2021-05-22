@@ -27,6 +27,26 @@ def extract(node):
 def build(src_path, dst_path, node, jinja_env, **kwargs):
     """Create page from RestructuredText node."""
 
+    def _extract_toc(node, level=1, toc_depth=3):
+        """Extract table of contents from rst document."""
+        # check if this level has to be processed
+        if level > toc_depth:
+            return []
+
+        # create toc entries for this level
+        entries = [
+            {
+                "level": level,
+                "id": child.attributes.get("ids", [""])[0],
+                "name": child.children[0].astext(),
+                "children": _extract_toc(child, level + 1, toc_depth),
+            }
+            for child in node.children
+            if child.tagname == "section"
+        ]
+
+        return entries
+
     # get user settings
     try:
         settings_overrides = node.data['_rst_options']['settings_overrides']
@@ -34,7 +54,7 @@ def build(src_path, dst_path, node, jinja_env, **kwargs):
         settings_overrides = {}
 
     try:
-        writer_name = env['_rst_options']['writer_name']
+        writer_name = node.data['_rst_options']['writer_name']
     except KeyError:
         raise SpekulatioValueError(
             f"{node.src_path}: missing 'writer_name' in '_rst_options'"
@@ -55,18 +75,17 @@ def build(src_path, dst_path, node, jinja_env, **kwargs):
         settings=None, settings_spec=None, settings_overrides=settings_overrides,
         config_section=None, enable_exit_status=None)
 
-    docinfo = pub.writer.docinfo
+    # docinfo is not used for now
+    _ = pub.writer.docinfo
+
     body = pub.writer.parts['html_body']
-    toc = self._extract_toc(pub.writer.document)
+    toc = _extract_toc(pub.writer.document)
 
     # update data
-    node.local_data.update({
+    node.data.update({
         '_content': body,
         '_toc': toc,
         '_title': toc[0]['name'] if toc else None,
-        '_rst': {
-            'docinfo': docinfo,
-        },
     })
 
     # write final html content

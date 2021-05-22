@@ -10,7 +10,7 @@ def extract(node):
 
     # create dictionary
     with node.src_path.open() as fd:
-        data = json.loads(fd)
+        data = json.load(fd)
     if not isinstance(data, dict):
         msg = "To extract the content, the top level element in a JSON file must be an object"
         raise SpekulatioBuildError(msg)

@@ -1,0 +1,5 @@
+
+_sass_options:
+  compile_params:
+    output_style: compressed
+

@@ -15,7 +15,7 @@ _html_files = r"^.+\.(htm|html)$"
 
 FiletreeConf = namedtuple("FiletreeConf", "template_dir ignore_patterns default_action actions")
 
-minimal_conf = FiletreeConf(
+data_conf = FiletreeConf(
     template_dir=False,
     ignore_patterns=[
         _underscore_files
@@ -34,6 +34,10 @@ template_conf = FiletreeConf(
     ],
     default_action=copy,
     actions={
+        'md':  md_to_html,
+        'rst':  rst_to_html,
+        'json':  json_to_html,
+        'yaml':  yaml_to_html,
         'sass': sass_to_css,
         '<dir>': create_dir,
     }

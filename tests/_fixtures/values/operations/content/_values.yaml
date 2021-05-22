@@ -1,0 +1,13 @@
+
+my_scalar: a
+
+my_list:
+  - a
+  - b
+  - c
+
+my_dict:
+  a: 1
+  b: 2
+  c: 3
+

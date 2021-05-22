@@ -1,10 +1,12 @@
 
 import shutil
 
+from spekulatio.exceptions import SpekulatioSkipExtraction
+
 extension_change = None
 
 def extract(node):
-    return {}
+    raise SpekulatioSkipExtraction()
 
 def build(src_path, dst_path, node, **kwargs):
     """Copy file without transformation"""

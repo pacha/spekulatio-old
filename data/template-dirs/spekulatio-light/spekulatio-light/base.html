@@ -1,0 +1,44 @@
+{% from 'helpers.html' import icon %}
+<!DOCTYPE html>
+<html {{ ('lang="' ~ language ~ '"') if language else '' }}>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        {% include spekulatio-light/sections/head_extra.html %}
+
+        {% for css_file in css_files %}
+            <link rel="stylesheet" href="{{ css_file }}">
+        {% endfor %}
+
+        {% for js_file in js_files %}
+            <script src="{{ js_file }}"></script>
+        {% endfor %}
+
+        <title>{{ _node.title }}</title>
+    </head>
+    <body>
+
+        {# header #}
+        {% include spekulatio-light/sections/header.html %}
+
+        {# mobile navigation #}
+        {% include spekulatio-light/sections/mobile-nav.html %}
+
+        {# main block #}
+        <main class="{{ layout or 'one-col' }}">
+            {# article #}
+            {% include spekulatio-light/sections/article.html %}
+
+            {# aside #}
+            {% if layout == 'two-cols' %}
+                {% include spekulatio-light/sections/aside.html %}
+            {% endif %}
+        </main>
+
+        {# Footer #}
+        {% include spekulatio-light/sections/footer.html %}
+
+    </body>
+</html>
+

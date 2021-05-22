@@ -29,7 +29,7 @@ def build(src_path, dst_path, node, jinja_env, **kwargs):
 
     # get extra extensions
     try:
-        extensions = node.local_data['_md_options']['extensions']
+        extensions = node.data['_md_options']['extensions']
     except KeyError:
         extensions = []
 
@@ -40,10 +40,10 @@ def build(src_path, dst_path, node, jinja_env, **kwargs):
     md = markdown.Markdown(extensions=extensions)
     content = md.convert(src_text)
     toc = md.toc_tokens
-    node.local_data.update({
-        '_content': content,
-        '_toc': toc,
+    node.data.update({
         '_title': toc[0]["name"] if toc else None,
+        '_toc': toc,
+        '_content': content,
     })
 
     # write final html content

@@ -21,10 +21,14 @@ def extract(node):
 
     return data
 
-def build(src_path, dst_path, node, **kwargs):
+def build(src_path, dst_path, node, jinja_env, **kwargs):
     """Create page from HTML node."""
 
     # write final html content
-    content = node.data['_src_text']
+    src_text = node.data['_src_text']
+    node.data.update({
+        '_content': src_text,
+    })
+    content = node.render_html(jinja_env)
     dst_path.write_text(content)
 

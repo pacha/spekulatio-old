@@ -1,0 +1,13 @@
+
+__local_var:
+  scope: local
+  value: 1
+
+__level_var:
+  scope: level
+  value: 2
+
+__branch_var:
+  scope: branch
+  value: 3
+
