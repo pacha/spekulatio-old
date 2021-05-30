@@ -11,6 +11,7 @@ from spekulatio.exceptions import SpekulatioBuildError
 from spekulatio.models.values import Value
 from spekulatio.models.filetrees import get_category
 
+
 class Node:
     """In-memory representation of a file or directory of the final site."""
 
@@ -61,15 +62,15 @@ class Node:
 
     @property
     def title(self):
-        return self.data['_title']
+        return self.data["_title"]
 
     @property
     def alias(self):
-        return self.data.get('_alias')
+        return self.data.get("_alias")
 
     @property
     def url(self):
-        return self.data.get('_url', self.default_url)
+        return self.data.get("_url", self.default_url)
 
     @property
     def default_url(self):
@@ -77,7 +78,9 @@ class Node:
 
     @property
     def user_data(self):
-        return {key: value for key, value in self.data.items() if not key.startswith('_')}
+        return {
+            key: value for key, value in self.data.items() if not key.startswith("_")
+        }
 
     @property
     def category(self):
@@ -108,9 +111,9 @@ class Node:
     def get(self, *children_names):
         current_node = self
         for child_name in children_names:
-            if child_name in ['', '.']:
+            if child_name in ["", "."]:
                 continue
-            elif child_name == '..':
+            elif child_name == "..":
                 current_node = current_node.parent
             else:
                 current_node = current_node.get_child(child_name)
@@ -141,7 +144,7 @@ class Node:
 
     def __str__(self):
         indent = "│   " * (self.depth - 1)
-        tail = '/' if self.is_dir else ''
+        tail = "/" if self.is_dir else ""
         return f"{indent}├── {self.name}{tail}"
 
     def set_values(self):
@@ -169,8 +172,8 @@ class Node:
             except SpekulatioSkipExtraction:
                 continue
 
-            self._update_data(overridden_values['default'], self.branch_data)
-            self._update_data(overridden_values['default'], self.data)
+            self._update_data(overridden_values["default"], self.branch_data)
+            self._update_data(overridden_values["default"], self.data)
 
         # get values defined in this node
         try:
@@ -179,19 +182,19 @@ class Node:
             return
 
         # set own default values (they go directly to branch data)
-        self._update_data(values['default'], self.branch_data)
-        self._update_data(values['default'], self.data)
+        self._update_data(values["default"], self.branch_data)
+        self._update_data(values["default"], self.data)
 
         # set branch values
-        self._update_data(values['branch'], self.branch_data)
-        self._update_data(values['branch'], self.data)
+        self._update_data(values["branch"], self.branch_data)
+        self._update_data(values["branch"], self.data)
 
         # level values
-        self._update_data(values['level'], self.level_data)
-        self._update_data(values['level'], self.data)
+        self._update_data(values["level"], self.level_data)
+        self._update_data(values["level"], self.data)
 
         # local values
-        self._update_data(values['local'], self.data)
+        self._update_data(values["local"], self.data)
 
         # set local values that can only be computed after the extracted values
         # have been set
@@ -201,15 +204,15 @@ class Node:
             pass
 
         # guarantee that there's always a title
-        if '_title' not in self.data or not self.data['_title']:
+        if "_title" not in self.data or not self.data["_title"]:
             try:
-                self.data['_title'] = self.data['_toc'][0]['name']
+                self.data["_title"] = self.data["_toc"][0]["name"]
             except (KeyError, IndexError):
-                self.data['_title'] = self.url
+                self.data["_title"] = self.url
 
         # guarantee that there's always a url
-        if '_url' not in self.data or not self.data['_url']:
-            self.data['_url'] = self.default_url
+        if "_url" not in self.data or not self.data["_url"]:
+            self.data["_url"] = self.default_url
 
     def extract_node_values(self):
         """Extract values defined in this node."""
@@ -232,28 +235,28 @@ class Node:
         called for each scope independently.
         """
         for value in values:
-            if value.operation == 'replace':
+            if value.operation == "replace":
                 data[value.name] = value.value
-            elif value.operation in ('merge', 'append'):
+            elif value.operation in ("merge", "append"):
                 try:
                     old_value = data[value.name]
                 except KeyError:
                     data[value.name] = value.value
                 else:
-                    target_type = dict if value.operation == 'merge' else list
+                    target_type = dict if value.operation == "merge" else list
                     if not isinstance(old_value, target_type):
                         raise SpekulatioValueError(
                             f"Invalid {value.operation} operation for '{value.name}'. "
                             "Destination value not of type {target_type}."
                         )
-                    if value.operation == 'merge':
+                    if value.operation == "merge":
                         new_dict = {}
                         new_dict.update(old_value)
                         new_dict.update(value.value)
                         data[value.name] = new_dict
                     else:
                         data[value.name] = old_value + value.value
-            elif value.operation == 'delete':
+            elif value.operation == "delete":
                 try:
                     del data[value.name]
                 except KeyError:
@@ -282,20 +285,22 @@ class Node:
 
         # get sorting options
         try:
-            sorting_field = self.data['_sort_options']['field']
+            sorting_field = self.data["_sort_options"]["field"]
         except KeyError:
-            sorting_field = 'name'
+            sorting_field = "name"
         try:
-            sorting_reverse = self.data['_sort_options']['reverse']
+            sorting_reverse = self.data["_sort_options"]["reverse"]
         except KeyError:
             sorting_reverse = False
 
         # get user's list of sorting values
-        sorting_values = self.data.get('_sort', [])
+        sorting_values = self.data.get("_sort", [])
 
         # create a map of child nodes for fast access
         try:
-            children_map = {getattr(child, sorting_field): child for child in self.children}
+            children_map = {
+                getattr(child, sorting_field): child for child in self.children
+            }
         except AttributeError:
             raise SpekulatioValueError(
                 f"{self.src_path}: invalid sorting field '{sorting_field}'."
@@ -303,7 +308,7 @@ class Node:
 
         # split sorting values at '*' (if not present, assume it is the last element)
         try:
-            sink_position = sorting_values.index('*')
+            sink_position = sorting_values.index("*")
         except ValueError:
             sink_position = len(sorting_values)
 
@@ -312,7 +317,7 @@ class Node:
         top_sorted_nodes = self._sort_with_values(top_values, children_map)
 
         # sort from the sink position to the end
-        bottom_values = sorting_values[(sink_position + 1):]
+        bottom_values = sorting_values[(sink_position + 1) :]
         bottom_sorted_nodes = self._sort_with_values(bottom_values, children_map)
 
         # sort all remaining nodes alphabetically and assign them to the sink
@@ -357,7 +362,6 @@ class Node:
 
         return sorted_nodes
 
-
     def build(self, build_path, only_modified, build_env):
         """Persist this node in the destination location."""
 
@@ -373,13 +377,14 @@ class Node:
                 dst_timestamp = dst_path.stat().st_mtime
                 src_timestamp = src_path.stat().st_mtime
                 if dst_timestamp >= src_timestamp:
-                    log.debug(f" [skipping] {self.relative_dst_path}. Destination newer than source.")
+                    log.debug(
+                        f" [skipping] {self.relative_dst_path}. Destination newer than source."
+                    )
                     return
 
         # build node
         log.debug(f" [build] {self.relative_dst_path} (action: {self.action.__name__})")
         self.action.build(src_path, dst_path, self, **build_env)
-
 
         # build children
         for child in self.children:
@@ -389,9 +394,9 @@ class Node:
 
         # get parameters from configuration
         try:
-            default_template = self.data['_jinja_options']['default_template']
+            default_template = self.data["_jinja_options"]["default_template"]
         except KeyError:
-            default_template = 'spekulatio/default.html'
+            default_template = "spekulatio/default.html"
 
         # get template
         template_name = self.data.get("_template", default_template)
@@ -413,4 +418,3 @@ class Node:
             )
 
         return content
-

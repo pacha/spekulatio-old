@@ -1,9 +1,9 @@
-
 import yaml
 
 from spekulatio.exceptions import SpekulatioBuildError
 
 extension_change = None
+
 
 def extract(node):
     """Treat virtual node as a normal YAML file when it comes to extract values."""
@@ -16,7 +16,7 @@ def extract(node):
         raise SpekulatioBuildError(msg)
     return data
 
+
 def build(src_path, dst_path, node, **kwargs):
     """Virtual nodes don't generate any output."""
     pass
-

@@ -1,4 +1,3 @@
-
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -24,21 +23,20 @@ setuptools.setup(
         "Click>=7.0",
         "Jinja2>=2.10",
         "libsass>=0.19.2",
-        'pyyaml>=4.2b1',
+        "pyyaml>=4.2b1",
         "rst2html5>=1.10.1",
         "markdown>=3.3.3",
         "coloredlogs>=15.0",
     ],
     extras_require={
-        'dev': [
-            'pytest',
-            'black',
+        "dev": [
+            "pytest",
+            "black",
         ]
     },
     entry_points={
-        'console_scripts': [
-            'spekulatio=spekulatio.commands:spekulatio',
+        "console_scripts": [
+            "spekulatio=spekulatio.commands:spekulatio",
         ],
-    }
+    },
 )
-

@@ -1,26 +1,25 @@
-
 filetype_lookup_table = {
-    '.html': 'html',
-    '.htm': 'html',
-    '.md': 'md',
-    '.mkd': 'md',
-    '.mkdn': 'md',
-    '.mdwn': 'md',
-    '.mdwon': 'md',
-    '.markdown': 'md',
-    '.rst': 'rst',
-    '.json': 'json',
-    '.yaml': 'yaml',
-    '.yml': 'yaml',
-    '.css': 'css',
-    '.scss': 'sass',
-    '.sass': 'sass',
-    '.js': 'js',
-    '.jpeg': 'jpeg',
-    '.webp': 'webp',
-    '.png': 'png',
-    '.gif': 'gif',
-    '.svg': 'svg',
+    ".html": "html",
+    ".htm": "html",
+    ".md": "md",
+    ".mkd": "md",
+    ".mkdn": "md",
+    ".mdwn": "md",
+    ".mdwon": "md",
+    ".markdown": "md",
+    ".rst": "rst",
+    ".json": "json",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".css": "css",
+    ".scss": "sass",
+    ".sass": "sass",
+    ".js": "js",
+    ".jpeg": "jpeg",
+    ".webp": "webp",
+    ".png": "png",
+    ".gif": "gif",
+    ".svg": "svg",
 }
 
 
@@ -33,12 +32,11 @@ def get_filetype(path):
     """
     # check if directory
     if path.is_dir():
-        return '<dir>'
+        return "<dir>"
 
     # check if virtual node
-    if path.name.endswith('.meta.yaml') or path.name.endswith('.meta.yml'):
-        return '<virt>'
+    if path.name.endswith(".meta.yaml") or path.name.endswith(".meta.yml"):
+        return "<virt>"
 
     # check if normal input file
-    return filetype_lookup_table.get(path.suffix, '<file>')
-
+    return filetype_lookup_table.get(path.suffix, "<file>")

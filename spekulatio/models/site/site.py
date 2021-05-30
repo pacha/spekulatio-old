@@ -16,6 +16,7 @@ from spekulatio.exceptions import SpekulatioInternalError
 
 from .node import Node
 
+
 class Site:
     """The site, modeled as a tree of Nodes.
 
@@ -60,7 +61,9 @@ class Site:
             self.template_dirs.insert(0, directory_path)
 
         # create the node tree recursively
-        self.root = self._from_path(directory_path, directory_path, filetree_conf, parent=None)
+        self.root = self._from_path(
+            directory_path, directory_path, filetree_conf, parent=None
+        )
 
     def _from_path(self, src_root, path, filetree_conf, parent):
         """Recursively traverse a directory and add its nodes to the site tree.
@@ -93,7 +96,9 @@ class Site:
 
             # check that the ouput is not ambiguous
             same_src_root = node.src_root == old_node.src_root
-            different_relative_path = node.relative_src_path != old_node.relative_src_path
+            different_relative_path = (
+                node.relative_src_path != old_node.relative_src_path
+            )
             if same_src_root and different_relative_path:
                 raise SpekulatioReadError(
                     f"Ambiguous input both: '{node.relative_src_path}' and "
@@ -116,7 +121,9 @@ class Site:
         has_children = False
         if is_dir:
             for child_src_path in path.iterdir():
-                child_node = self._from_path(src_root, child_src_path, filetree_conf, parent=node)
+                child_node = self._from_path(
+                    src_root, child_src_path, filetree_conf, parent=node
+                )
                 has_children = child_node or has_children
 
         # register new node
@@ -130,21 +137,19 @@ class Site:
         if parent:
             # remove overwritten node from parent's children list
             if old_node:
-                if old_node.default_url != '/':
-                    log.debug(f" [node overwritten] {relative_src_path} overwrites previous node")
+                if old_node.default_url != "/":
+                    log.debug(
+                        f" [node overwritten] {relative_src_path} overwrites previous node"
+                    )
                 parent.children.remove(old_node)
 
             # add new node
             parent.children.append(node)
 
         if node.action != virtual_node:
-            log.debug(
-                f" [new node] {relative_src_path} > {node.default_url}"
-            )
+            log.debug(f" [new node] {relative_src_path} > {node.default_url}")
         else:
-            log.debug(
-                f" [new node] {relative_src_path} (no output: virtual node)"
-            )
+            log.debug(f" [new node] {relative_src_path} (no output: virtual node)")
 
         return node
 
@@ -202,7 +207,6 @@ class Site:
                     previous_sibling.next_sibling = child
                 previous_sibling = child
 
-
     def build(self):
         """Create files in the destination location."""
         # check if site has been initialized
@@ -228,7 +232,7 @@ class Site:
 
     def _get_build_env(self):
         build_env = {
-            'jinja_env': self._get_jinja_env(),
+            "jinja_env": self._get_jinja_env(),
         }
         return build_env
 
@@ -262,7 +266,9 @@ class Site:
             now = datetime.now()
             return now.strftime(format)
 
-        template_dirs = [str(template_dir.absolute()) for template_dir in self.template_dirs]
+        template_dirs = [
+            str(template_dir.absolute()) for template_dir in self.template_dirs
+        ]
         loader = jinja2.FileSystemLoader(template_dirs, followlinks=True)
         jinja_env = jinja2.Environment(loader=loader)
 
@@ -271,4 +277,3 @@ class Site:
         jinja_env.globals.update(now_as=now_as)
 
         return jinja_env
-

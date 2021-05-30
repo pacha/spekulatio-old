@@ -30,7 +30,6 @@ def parse_frontmatter(text):
         the text without the frontmatter.
     """
 
-
     # check if the document has a frontmatter section
     match = FRONTMATTER_PATTERN.fullmatch(text)
     if not match:

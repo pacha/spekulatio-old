@@ -46,4 +46,3 @@ def build(build_path, content_paths, template_paths, data_paths, only_modified):
     site.build()
 
     site.display_tree()
-

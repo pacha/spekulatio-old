@@ -1,9 +1,9 @@
-
 import json
 
 from spekulatio.exceptions import SpekulatioBuildError
 
-extension_change = '.html'
+extension_change = ".html"
+
 
 def extract(node):
     """Extract data from JSON content into a dictionary."""
@@ -16,8 +16,8 @@ def extract(node):
         raise SpekulatioBuildError(msg)
     return data
 
+
 def build(src_path, dst_path, node, jinja_env, **kwargs):
     """Create page from JSON file."""
     content = node.render_html(jinja_env)
     dst_path.write_text(content)
-

@@ -52,7 +52,15 @@ from spekulatio.exceptions import SpekulatioError
 @click.option(
     "-vv", "--very-verbose", default=False, is_flag=True, help="Show debug information."
 )
-def build(build_dir, content_dirs, template_dirs, data_dirs, only_modified, verbose, very_verbose):
+def build(
+    build_dir,
+    content_dirs,
+    template_dirs,
+    data_dirs,
+    only_modified,
+    verbose,
+    very_verbose,
+):
     """Build site."""
 
     # configure logging
@@ -80,9 +88,9 @@ def build(build_dir, content_dirs, template_dirs, data_dirs, only_modified, verb
         sys.exit(1)
 
     # define relevant paths
-    current_path = Path('.')
+    current_path = Path(".")
     spekulatio_path = Path(__file__).absolute().parent.parent.parent
-    spekulatio_templates_path = spekulatio_path / 'data' / "template-dirs"
+    spekulatio_templates_path = spekulatio_path / "data" / "template-dirs"
 
     # check input directories
     content_paths = []
@@ -150,11 +158,15 @@ def build(build_dir, content_dirs, template_dirs, data_dirs, only_modified, verb
     # add default Spekulatio's default templates
     spekulatio_default_template_path = spekulatio_templates_path / "spekulatio-default"
     template_paths.insert(0, spekulatio_default_template_path)
-    log.info(f"Added template directory: {spekulatio_default_template_path} with the lowest priority.")
+    log.info(
+        f"Added template directory: {spekulatio_default_template_path} with the lowest priority."
+    )
 
     # finally: build site
     try:
-        services.build(build_path, content_paths, template_paths, data_paths, only_modified)
+        services.build(
+            build_path, content_paths, template_paths, data_paths, only_modified
+        )
     except SpekulatioError as err:
         log.error(f"{err}")
         sys.exit(1)

@@ -21,7 +21,7 @@ class Value:
     ]
 
     underscore_keys = {
-        # input 
+        # input
         "_template": {"scope": "default", "operation": "replace", "type": str},
         "_alias": {"scope": "local", "operation": "replace", "type": str},
         "_sort": {"scope": "local", "operation": "replace", "type": list},
@@ -30,7 +30,6 @@ class Value:
         "_rst_options": {"scope": "default", "operation": "merge", "type": dict},
         "_md_options": {"scope": "default", "operation": "merge", "type": dict},
         "_sass_options": {"scope": "default", "operation": "merge", "type": dict},
-
         # output
         "_title": {"scope": "local", "operation": "replace", "type": str},
         "_url": {"scope": "local", "operation": "replace", "type": str},
@@ -73,8 +72,8 @@ class Value:
             self._validate_one_underscore(key, raw_value)
             self.name = key
             self.value = raw_value
-            self.scope = self.underscore_keys[key]['scope']
-            self.operation = self.underscore_keys[key]['operation']
+            self.scope = self.underscore_keys[key]["scope"]
+            self.operation = self.underscore_keys[key]["operation"]
         else:
             self.name = key
             self.value = raw_value
@@ -84,10 +83,10 @@ class Value:
     @classmethod
     def get_values_from_dict(cls, dictionary):
         values = {
-            'default': [],
-            'branch': [],
-            'level': [],
-            'local': [],
+            "default": [],
+            "branch": [],
+            "level": [],
+            "local": [],
         }
         for key, raw_value in dictionary.items():
             value = cls(key, raw_value)
@@ -103,7 +102,9 @@ class Value:
             )
         if "value" in raw_value:
             if "operation" in raw_value and raw_value["operation"] == "delete":
-                raise SpekulatioValueError(f"Key '{key}' can't provide a 'value' field when the operation is set to 'delete'.")
+                raise SpekulatioValueError(
+                    f"Key '{key}' can't provide a 'value' field when the operation is set to 'delete'."
+                )
         else:
             if "operation" not in raw_value or raw_value["operation"] != "delete":
                 raise SpekulatioValueError(f"Key '{key}' must provide a 'value' field.")
@@ -147,7 +148,7 @@ class Value:
             )
 
         # check type
-        key_type = self.underscore_keys[key]['type']
+        key_type = self.underscore_keys[key]["type"]
         if not isinstance(raw_value, key_type):
             raise SpekulatioValueError(
                 f"Underscore key '{key}' must be of type {key_type}."

@@ -1,4 +1,3 @@
-
 import logging as log
 from pathlib import Path
 
@@ -6,15 +5,17 @@ import sass
 
 extension_change = ".css"
 
+
 def extract(node):
-    return {'foo': 3}
+    return {}
+
 
 def build(src_path, dst_path, node, **kwargs):
     """Compile SCSS into CSS."""
 
     # get environment for the sass builder
-    sass_options = node.data.get('_sass_options', {})
-    compile_parameters = sass_options.get('compile_parameters', {})
+    sass_options = node.data.get("_sass_options", {})
+    compile_parameters = sass_options.get("compile_parameters", {})
 
     # spekulatio specific importer
     def importer(name, src_path_str):
@@ -65,8 +66,9 @@ def build(src_path, dst_path, node, **kwargs):
     importers = [(0, importer)]
 
     # get content
-    content = sass.compile(filename=str(src_path), importers=importers, **compile_parameters)
+    content = sass.compile(
+        filename=str(src_path), importers=importers, **compile_parameters
+    )
 
     # write file
     dst_path.write_text(content)
-
