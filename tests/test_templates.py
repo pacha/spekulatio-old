@@ -22,6 +22,7 @@ def test_overriding_templates(fixtures_path, tmp_path):
     site.from_directory(templates1_path, template_conf)
     site.from_directory(templates2_path, template_conf)
     site.from_directory(content_path, content_conf)
+    site.set_values()
     site.build()
 
     # check a

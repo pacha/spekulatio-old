@@ -23,6 +23,7 @@ class Value:
     underscore_keys = {
         # input 
         "_template": {"scope": "default", "operation": "replace", "type": str},
+        "_alias": {"scope": "local", "operation": "replace", "type": str},
         "_sort": {"scope": "local", "operation": "replace", "type": list},
         "_sort_options": {"scope": "default", "operation": "merge", "type": dict},
         "_jinja_options": {"scope": "default", "operation": "merge", "type": dict},
@@ -32,6 +33,7 @@ class Value:
 
         # output
         "_title": {"scope": "local", "operation": "replace", "type": str},
+        "_url": {"scope": "local", "operation": "replace", "type": str},
         "_toc": {"scope": "local", "operation": "replace", "type": list},
         "_content": {"scope": "local", "operation": "replace", "type": str},
         "_src_text": {"scope": "local", "operation": "replace", "type": str},

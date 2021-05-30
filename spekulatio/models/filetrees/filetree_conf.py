@@ -9,6 +9,7 @@ from spekulatio.models.actions import md_to_html
 from spekulatio.models.actions import rst_to_html
 from spekulatio.models.actions import json_to_html
 from spekulatio.models.actions import yaml_to_html
+from spekulatio.models.actions import virtual_node
 
 _underscore_files = r"^_.+$"
 _html_files = r"^.+\.(htm|html)$"
@@ -39,6 +40,7 @@ template_conf = FiletreeConf(
         'json':  json_to_html,
         'yaml':  yaml_to_html,
         'sass': sass_to_css,
+        '<virt>': virtual_node,
         '<dir>': create_dir,
     }
 )
@@ -56,6 +58,7 @@ content_conf = FiletreeConf(
         'json':  json_to_html,
         'yaml':  yaml_to_html,
         'sass': sass_to_css,
+        '<virt>': virtual_node,
         '<dir>': create_dir,
     }
 )

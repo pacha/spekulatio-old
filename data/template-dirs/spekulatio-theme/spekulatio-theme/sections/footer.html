@@ -1,0 +1,7 @@
+<footer>
+    {% if footer_text %}
+        {{ footer_text }}
+    {% else %}
+        © Copyright {{ now_as('%Y') }}, {{ site.author }}
+    {% endif %}
+</footer>

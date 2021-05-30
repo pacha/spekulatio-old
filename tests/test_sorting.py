@@ -15,6 +15,7 @@ def test_default_sorting(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
     site.sort()
 
     # check dir1
@@ -40,6 +41,7 @@ def test_manual_sorting(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
     site.sort()
 
     # check dir1
@@ -65,6 +67,7 @@ def test_mixed_sorting(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
     site.sort()
 
     # check dir1

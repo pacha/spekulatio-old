@@ -15,6 +15,7 @@ def test_frontmatter_values(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
 
     # check node values
     node = site.nodes['/foo.html']
@@ -36,9 +37,10 @@ def test_frontmatter_error(fixtures_path):
     content_path = fixtures_path / 'values' / 'frontmatter-error' / 'content'
 
     site = Site(build_path=None, only_modified=False)
+    site.from_directory(content_path, content_conf)
 
     with pytest.raises(SpekulatioReadError):
-        site.from_directory(content_path, content_conf)
+        site.set_values()
 
 
 def test_values_file(fixtures_path):
@@ -48,6 +50,7 @@ def test_values_file(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
 
     # check node values
     expected_data = {
@@ -70,6 +73,7 @@ def test_value_scopes(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
 
     # check root
     assert 'local_var' not in site.root.branch_data
@@ -133,6 +137,7 @@ def test_overwriting(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
 
     # check foo
     foo = site.nodes['/dir1/foo.html']
@@ -156,6 +161,7 @@ def test_overwriting_filetrees(fixtures_path):
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path1, content_conf)
     site.from_directory(content_path2, content_conf)
+    site.set_values()
 
     # check foo
     foo = site.nodes['/dir1/foo.html']
@@ -179,6 +185,7 @@ def test_default_values(fixtures_path):
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path1, content_conf)
     site.from_directory(content_path2, content_conf)
+    site.set_values()
 
     # check dir1
     dir1 = site.nodes['/dir1']
@@ -198,6 +205,7 @@ def test_default_inheritance(fixtures_path):
     site = Site(build_path=None, only_modified=False)
     site.from_directory(template_path, template_conf)
     site.from_directory(content_path, content_conf)
+    site.set_values()
 
     # check default template from root
     root = site.nodes['/']
@@ -223,6 +231,7 @@ def test_operations(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
 
     # check delete operation
     delete = site.nodes['/delete.html']
@@ -248,8 +257,9 @@ def test_operations_wrong_append(fixtures_path):
     content_path = fixtures_path / 'values' / 'operations-wrong-append' / 'content'
 
     site = Site(build_path=None, only_modified=False)
+    site.from_directory(content_path, content_conf)
     with pytest.raises(SpekulatioReadError):
-        site.from_directory(content_path, content_conf)
+        site.set_values()
 
 def test_operations_wrong_merge(fixtures_path):
 
@@ -257,8 +267,9 @@ def test_operations_wrong_merge(fixtures_path):
     content_path = fixtures_path / 'values' / 'operations-wrong-merge' / 'content'
 
     site = Site(build_path=None, only_modified=False)
+    site.from_directory(content_path, content_conf)
     with pytest.raises(SpekulatioReadError):
-        site.from_directory(content_path, content_conf)
+        site.set_values()
 
 def test_operations_wrong_delete(fixtures_path):
 
@@ -266,8 +277,9 @@ def test_operations_wrong_delete(fixtures_path):
     content_path = fixtures_path / 'values' / 'operations-wrong-delete' / 'content'
 
     site = Site(build_path=None, only_modified=False)
+    site.from_directory(content_path, content_conf)
     with pytest.raises(SpekulatioReadError):
-        site.from_directory(content_path, content_conf)
+        site.set_values()
 
 def test_duplicate_values(fixtures_path):
 
@@ -276,6 +288,7 @@ def test_duplicate_values(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
 
     # check directory node
     dir_node = site.nodes['/dir1']

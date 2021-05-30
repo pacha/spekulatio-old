@@ -1,0 +1,43 @@
+{#
+<nav id="primary-navigation-mobile" aria-labelledby="primary-navigation" class="initially-hidden">
+    <ul>
+        {% for item in data.main_menu %}
+        <li>
+            {% if data.first_level_section == item.code %}
+                <a class="active" href="{{ item.url }}">{{ item.mobile_text or item.text }}</a>
+                {% if data.index_node %}
+                    {% with index = get_node(data.index_node) %}
+                    <ul class="sections">
+                        {% for section in index.sections %}
+                            <li><a href="#{{ section.id }}">{{ section.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% endwith %}
+                {% else %}
+                    {% if data.menu %}
+                    <ul class="sections">
+                        {% for entry in data.menu %}
+                        <li>
+                            <a href="{{ entry.url }}">{{ entry.title }}</a>
+                            {% if entry.entries %}
+                            <ul class="subsections">
+                                {% for entry in entry.entries %}
+                                <li>
+                                    <a href="{{ entry.url }}">{{ entry.title }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <a href="{{ item.url }}">{{ item.mobile_text or item.text }}</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</nav>
+#}

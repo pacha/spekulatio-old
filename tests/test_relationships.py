@@ -39,6 +39,7 @@ def test_prev_next(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
     site.sort()
     site.set_relationships()
 
@@ -71,6 +72,7 @@ def test_siblings(fixtures_path):
 
     site = Site(build_path=None, only_modified=False)
     site.from_directory(content_path, content_conf)
+    site.set_values()
     site.sort()
     site.set_relationships()
 
@@ -104,4 +106,38 @@ def test_siblings(fixtures_path):
     assert bak.next_sibling is bat
     assert bat.prev_sibling is bak
     assert bat.next_sibling is None
+
+def test_get_method(fixtures_path):
+
+    # source files path
+    content_path = fixtures_path / 'relationships' / 'get-method' / 'content'
+    templates_path = fixtures_path / 'relationships' / 'get-method' / 'templates'
+
+    # build site
+    site = Site(build_path=None, only_modified=False)
+    site.from_directory(templates_path, template_conf)
+    site.from_directory(content_path, content_conf)
+    site.set_values()
+    site.sort()
+    site.set_relationships()
+
+    # check one level
+    foo = site.root.get('foo.txt')
+    assert foo == site.nodes['/foo.txt']
+
+    # check multiple levels
+    bat = site.root.get('dir1', 'dir2', 'dir3', 'bat.txt')
+    assert bat == site.nodes['/dir1/dir2/dir3/bat.txt']
+
+    # check period (.), which means staying in the same place
+    bat = site.root.get('dir1', 'dir2', 'dir3', '.', '', 'bat.txt')
+    assert bat == site.nodes['/dir1/dir2/dir3/bat.txt']
+
+    # check double period (..), which means moving up one directory
+    bar = bat.get('..', '..', '..', 'bar.txt')
+    assert bar == site.nodes['/dir1/bar.txt']
+
+    # check navigation across file trees
+    this = bat.get('..', '..', '..', 'dir2', 'this.txt')
+    assert this == site.nodes['/dir1/dir2/this.txt']
 

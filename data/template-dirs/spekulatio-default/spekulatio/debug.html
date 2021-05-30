@@ -119,11 +119,12 @@
 
             <h3>Values</h3>
             <dl>
-            {% for key, value in _node.data.items() %}
-                {% if not key.startswith('_') %}
+            {% for key, value in _node.user_data.items() %}
                 <dt>{{ key }}</dt>
                 <dd>{{ value }}</dd>
-                {% endif  %}
+            {% else %}
+                <dt></dt>
+                <dd>(none)</dd>
             {% endfor %}
             </dl>
 

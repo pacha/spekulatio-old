@@ -24,8 +24,8 @@ def extract(node):
 
     return data
 
-def build(src_path, dst_path, node, jinja_env, **kwargs):
-    """Create page from RestructuredText node."""
+def post_extract(node):
+    """Set values after parsing the RestructuredText content."""
 
     def _extract_toc(node, level=1, toc_depth=3):
         """Extract table of contents from rst document."""
@@ -47,18 +47,18 @@ def build(src_path, dst_path, node, jinja_env, **kwargs):
 
         return entries
 
-    # get user settings
-    try:
-        settings_overrides = node.data['_rst_options']['settings_overrides']
-    except KeyError:
-        settings_overrides = {}
-
-    try:
-        writer_name = node.data['_rst_options']['writer_name']
-    except KeyError:
-        raise SpekulatioValueError(
-            f"{node.src_path}: missing 'writer_name' in '_rst_options'"
-        )
+    # default rst conversion options
+    rst_options = {
+        'settings_overrides': {
+            'doctitle_xform': False,
+            'initial_header_level': 1,
+        },
+        'writer_name': 'html5',
+    }
+    if '_rst_options' in node.data:
+        rst.options.update(node.data['_rst_options'])
+    settings_overrides = rst_options['settings_overrides']
+    writer_name = rst_options['writer_name']
 
     # get source rst text
     src_text = node.data['_src_text']
@@ -85,9 +85,11 @@ def build(src_path, dst_path, node, jinja_env, **kwargs):
     node.data.update({
         '_content': body,
         '_toc': toc,
-        '_title': toc[0]['name'] if toc else None,
     })
 
+
+def build(src_path, dst_path, node, jinja_env, **kwargs):
+    """Create page from RestructuredText node."""
     # write final html content
     content = node.render_html(jinja_env)
     dst_path.write_text(content)

@@ -28,11 +28,17 @@ def get_filetype(path):
     """Return a normalized filetype for the given path.
 
     If the path is a directory, the returned value is: '<dir>'
+    If the path is a virtual node, the returned value is: '<virt>'
     If the path is a file of an unknown type, the returned value is '<file>'
     """
+    # check if directory
     if path.is_dir():
         return '<dir>'
 
-    return filetype_lookup_table.get(path.suffix, '<file>')
+    # check if virtual node
+    if path.name.endswith('.meta.yaml') or path.name.endswith('.meta.yml'):
+        return '<virt>'
 
+    # check if normal input file
+    return filetype_lookup_table.get(path.suffix, '<file>')
 

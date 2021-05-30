@@ -1,0 +1,40 @@
+{% from 'spekulatio-theme/helpers/icon.html' import icon %}
+<!DOCTYPE html>
+<html {{ ('lang="' ~ language ~ '"') if language else '' }}>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        {% include "spekulatio-theme/sections/head-extra.html" ignore missing %}
+
+        {% for css_file in css_files %}
+            <link rel="stylesheet" href="{{ css_file }}">
+        {% endfor %}
+
+        {% for js_file in js_files %}
+            <script src="{{ js_file }}"></script>
+        {% endfor %}
+
+        <title>{{ _node.title }}</title>
+    </head>
+    <body>
+
+        {# header #}
+        {% include "spekulatio-theme/sections/header.html" %}
+
+        {# mobile navigation #}
+        {% include "spekulatio-theme/sections/mobile-nav.html" %}
+
+        {# main block #}
+        {% block main %}
+        <main>
+            {{ _content }}
+        </main>
+        {% endblock main %}
+
+        {# Footer #}
+        {% include "spekulatio-theme/sections/footer.html" %}
+
+    </body>
+</html>
+

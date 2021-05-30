@@ -1,0 +1,28 @@
+
+__css_files:
+  scope: default
+  value:
+    - "/static/css/normalize.css"
+    - "/static/css/elements.css"
+    - "/static/css/layout.css"
+
+__js_files:
+  scope: default
+  value: []
+
+__site:
+  scope: default
+  value:
+    name: My Site
+    author: Me
+
+__language:
+  scope: default
+  value: null
+
+__layout:
+  scope: default
+  value: null
+
+site:
+  author: foo

@@ -12,7 +12,7 @@ def extract(node):
     with node.src_path.open() as fd:
         data = yaml.safe_load(fd)
     if not isinstance(data, dict):
-        msg = "To extract the content, the top level element in a JSON file must be an object"
+        msg = "To extract the content, the top level element in a YAML file must be an object"
         raise SpekulatioBuildError(msg)
     return data
 

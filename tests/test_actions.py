@@ -53,12 +53,13 @@ def test_render_html_action(fixtures_path, tmp_path, html_render_action):
     # source files path
     content_path = fixtures_path / 'actions' / html_render_action / 'content'
     current_path = Path(__file__).absolute().parent.parent
-    default_template_path = current_path / 'data' / "default_templates"
+    default_template_path = current_path / 'data' / "template-dirs" / "spekulatio-default"
 
     # build site
     site = Site(build_path=tmp_path, only_modified=False)
     site.from_directory(default_template_path, template_conf)
     site.from_directory(content_path, content_conf)
+    site.set_values()
     site.build()
 
     # text extractor

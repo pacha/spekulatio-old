@@ -33,6 +33,9 @@ class Node:
         self.next_sibling = None
         self.prev_sibling = None
 
+        # nodes that this node overwrites
+        self.overridden_nodes = []
+
         # data is the effective data passed to the template.
         # It combines data from all the scopes. When a value is defined as
         # 'local' it is just included here.
@@ -52,10 +55,25 @@ class Node:
         # It's used to define values in templates that are applied to the content tree
         self.default_data = {}
 
-
     @property
     def name(self):
         return self.relative_dst_path.name
+
+    @property
+    def title(self):
+        return self.data['_title']
+
+    @property
+    def alias(self):
+        return self.data.get('_alias')
+
+    @property
+    def url(self):
+        return self.data.get('_url', self.default_url)
+
+    @property
+    def default_url(self):
+        return f"{Path('/') / self.relative_dst_path}"
 
     @property
     def user_data(self):
@@ -64,17 +82,6 @@ class Node:
     @property
     def category(self):
         return get_category(self.relative_dst_path)
-
-    @property
-    def url(self):
-        return f"{Path('/') / self.relative_dst_path}"
-
-    @property
-    def title(self):
-        try:
-            return self.data['_title']
-        except AttributeError:
-            return self.url
 
     @property
     def src_path(self):
@@ -90,6 +97,26 @@ class Node:
         if self.action.extension_change:
             return self.relative_src_path.with_suffix(self.action.extension_change)
         return self.relative_src_path
+
+    def get_child(self, child_name):
+        """Get a child given its name."""
+        for child in self.children:
+            if child_name == child.name:
+                return child
+        return None
+
+    def get(self, *children_names):
+        current_node = self
+        for child_name in children_names:
+            if child_name in ['', '.']:
+                continue
+            elif child_name == '..':
+                current_node = current_node.parent
+            else:
+                current_node = current_node.get_child(child_name)
+                if not current_node:
+                    return None
+        return current_node
 
     def get_dst_path(self, build_path):
         full_path = build_path / self.relative_dst_path
@@ -118,26 +145,14 @@ class Node:
         return f"{indent}├── {self.name}{tail}"
 
     def set_values(self):
-        """Take user values and store then in the node."""
+        """Take user values and store then in the node.
 
-        # get values for this node (from a _values.yaml file or a frontmatter)
-        try:
-            data_dict = self.action.extract(self)
-        except SpekulatioSkipExtraction:
-            return
+        sources for data:
 
-        # convert raw values to value objects
-        try:
-            values = Value.get_values_from_dict(data_dict)
-        except Exception as err:
-            raise SpekulatioReadError(f"Wrong values at '{self.src_path}': {err}")
-
-        # sources for data:
-        #
-        # - Inheritance:   branch_data, local_data (ie. directly stored in data)
-        # - Node creation: default_data, branch_data
-        # - Node values:   default_data, branch_data, level_data, local_data (ie. directly stored in data)
-        #
+        - Node overriding: default_data
+        - Inheritance:   branch_data, local_data (from level_data)
+        - Node values:   default_data, branch_data, level_data, local_data
+        """
 
         # set values from parent
         if self.parent:
@@ -145,14 +160,27 @@ class Node:
             self.data.update(self.parent.branch_data)
             self.data.update(self.parent.level_data)
 
-        # get values from overriden node
-        self._update_data(values['default'], self.default_data)
-        self._update_data(values['default'], self.data)
+        # get values from overriden nodes
+        for overridden_node in self.overridden_nodes:
 
-        # set values from node creation
-        self.branch_data.update(self.default_data)
-        self.data.update(self.default_data)
-        self.data.update(self.branch_data)
+            # extract values from the node
+            try:
+                overridden_values = overridden_node.extract_node_values()
+            except SpekulatioSkipExtraction:
+                continue
+
+            self._update_data(overridden_values['default'], self.branch_data)
+            self._update_data(overridden_values['default'], self.data)
+
+        # get values defined in this node
+        try:
+            values = self.extract_node_values()
+        except SpekulatioSkipExtraction:
+            return
+
+        # set own default values (they go directly to branch data)
+        self._update_data(values['default'], self.branch_data)
+        self._update_data(values['default'], self.data)
 
         # set branch values
         self._update_data(values['branch'], self.branch_data)
@@ -165,6 +193,36 @@ class Node:
         # local values
         self._update_data(values['local'], self.data)
 
+        # set local values that can only be computed after the extracted values
+        # have been set
+        try:
+            self.action.post_extract(self)
+        except AttributeError:
+            pass
+
+        # guarantee that there's always a title
+        if '_title' not in self.data or not self.data['_title']:
+            try:
+                self.data['_title'] = self.data['_toc'][0]['name']
+            except (KeyError, IndexError):
+                self.data['_title'] = self.url
+
+        # guarantee that there's always a url
+        if '_url' not in self.data or not self.data['_url']:
+            self.data['_url'] = self.default_url
+
+    def extract_node_values(self):
+        """Extract values defined in this node."""
+        # get values from _values.yaml file or frontmatter
+        data_dict = self.action.extract(self)
+
+        # convert raw values to value objects
+        try:
+            values = Value.get_values_from_dict(data_dict)
+        except Exception as err:
+            raise SpekulatioReadError(f"Wrong values at '{self.src_path}': {err}")
+
+        return values
 
     @staticmethod
     def _update_data(values, data):
@@ -200,8 +258,8 @@ class Node:
                     del data[value.name]
                 except KeyError:
                     log.warning(
-                        f" {self.relative_dst_path} is trying to delete "
-                        f"value '{value.name}' but such value doesn't exist."
+                        f"Invalid deleting operation for '{value.name}': "
+                        f"value doesn't exist."
                     )
 
     def sort(self):
@@ -225,12 +283,12 @@ class Node:
         # get sorting options
         try:
             sorting_field = self.data['_sort_options']['field']
+        except KeyError:
+            sorting_field = 'name'
+        try:
             sorting_reverse = self.data['_sort_options']['reverse']
         except KeyError:
-            raise SpekulatioValueError(
-                f"{self.src_path}: incomplete sorting options. "
-                "You need to specify both 'field' and 'reverse' values."
-            )
+            sorting_reverse = False
 
         # get user's list of sorting values
         sorting_values = self.data.get('_sort', [])
@@ -333,9 +391,7 @@ class Node:
         try:
             default_template = self.data['_jinja_options']['default_template']
         except KeyError:
-            raise SpekulatioValueError(
-                f"{self.src_path}: missing 'default_template' in '_jinja_options'"
-            )
+            default_template = 'spekulatio/default.html'
 
         # get template
         template_name = self.data.get("_template", default_template)
@@ -350,8 +406,10 @@ class Node:
         try:
             content = template.render(_node=self, **self.data)
         except Exception as err:
+            raise
+            exception_name = err.__class__.__name__
             raise SpekulatioBuildError(
-                f"{self.src_path}: {err} in template '{template_name}'."
+                f"{self.src_path}: {exception_name}: {err} in template '{template_name}'."
             )
 
         return content

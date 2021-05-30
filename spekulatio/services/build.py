@@ -33,6 +33,9 @@ def build(build_path, content_paths, template_paths, data_paths, only_modified):
         log.info(f"Reading content directory: {content_path}")
         site.from_directory(content_path, content_conf)
 
+    log.info("Set values in nodes...")
+    site.set_values()
+
     log.info("Sorting nodes...")
     site.sort()
 

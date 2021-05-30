@@ -24,14 +24,14 @@ def extract(node):
 
     return data
 
-def build(src_path, dst_path, node, jinja_env, **kwargs):
-    """Create page from Markdown node."""
+def post_extract(node):
+    """Convert Markdown to HTML."""
 
     # get extra extensions
     try:
         extensions = node.data['_md_options']['extensions']
     except KeyError:
-        extensions = []
+        extensions = ['toc', 'fenced_code']
 
     # get source rst text
     src_text = node.data['_src_text']
@@ -39,12 +39,17 @@ def build(src_path, dst_path, node, jinja_env, **kwargs):
     # convert text to markdown
     md = markdown.Markdown(extensions=extensions)
     content = md.convert(src_text)
+
+    # get toc
     toc = md.toc_tokens
+
     node.data.update({
-        '_title': toc[0]["name"] if toc else None,
         '_toc': toc,
         '_content': content,
     })
+
+def build(src_path, dst_path, node, jinja_env, **kwargs):
+    """Create page from Markdown node."""
 
     # write final html content
     content = node.render_html(jinja_env)

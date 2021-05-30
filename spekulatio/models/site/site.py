@@ -2,13 +2,16 @@ import re
 import json
 import logging as log
 from pathlib import Path
+from datetime import datetime
 
 import jinja2
 
 from spekulatio.models.values import Value
 from spekulatio.models.actions import create_dir
+from spekulatio.models.actions import virtual_node
 from spekulatio.models.filetrees import get_filetype
 from spekulatio.exceptions import SpekulatioReadError
+from spekulatio.exceptions import SpekulatioBuildError
 from spekulatio.exceptions import SpekulatioInternalError
 
 from .node import Node
@@ -38,6 +41,7 @@ class Site:
         # node structure
         self.root = None
         self.nodes = {}
+        self.aliases = {}
 
     def display_tree(self):
         node_iterator = self.root.traverse()
@@ -84,7 +88,7 @@ class Site:
         node = Node(src_root, relative_src_path, action, parent)
 
         # check if there's an existing node at the same location
-        old_node = self.nodes.get(node.url)
+        old_node = self.nodes.get(node.default_url)
         if old_node:
 
             # check that the ouput is not ambiguous
@@ -93,24 +97,19 @@ class Site:
             if same_src_root and different_relative_path:
                 raise SpekulatioReadError(
                     f"Ambiguous input both: '{node.relative_src_path}' and "
-                    f"'{old_node.relative_src_path}' at '{node.src_root}' generate the same "
-                    f"output file '{node.relative_dst_path}'. Add only one input file for "
-                    "each associated output file."
+                    f"'{old_node.relative_src_path}' at '{node.src_root}' can potentially "
+                    f"generate the same output file '{node.relative_dst_path}'. "
+                    "Add only one input file for each associated output file."
                 )
 
-            # default data is always copied over
-            node.default_data = old_node.default_data
+            # inherit list of overwritten nodes and add new entry
+            node.overridden_nodes = old_node.overridden_nodes
+            node.overridden_nodes.append(old_node)
 
-            # children are also inherited
+            # inherit children
             node.children = old_node.children
-
-        # add default values if first root node
-        if not parent and not node.branch_data:
-            default_values = self._get_default_values()
-            node.branch_data.update(default_values)
-
-        # process values
-        node.set_values()
+            for child in node.children:
+                child.parent = node
 
         # process children
         is_dir = path.is_dir()
@@ -127,20 +126,40 @@ class Site:
         if not register:
             return None
 
-        self.nodes[node.url] = node
+        self.nodes[node.default_url] = node
         if parent:
             # remove overwritten node from parent's children list
             if old_node:
-                if old_node.url != '/':
+                if old_node.default_url != '/':
                     log.debug(f" [node overwritten] {relative_src_path} overwrites previous node")
                 parent.children.remove(old_node)
 
             # add new node
             parent.children.append(node)
-        log.debug(
-            f" [new node] {relative_src_path} > {node.url}"
-        )
+
+        if node.action != virtual_node:
+            log.debug(
+                f" [new node] {relative_src_path} > {node.default_url}"
+            )
+        else:
+            log.debug(
+                f" [new node] {relative_src_path} (no output: virtual node)"
+            )
+
         return node
+
+    def set_values(self):
+        """Set values for nodes recursively."""
+        # check if site has been initialized
+        if not self.root:
+            raise SpekulatioReadError(
+                "Site not initialized yet. "
+                "Use Site.from_directory(...) to add content to it."
+            )
+
+        # process values
+        for node in self.root.traverse():
+            node.set_values()
 
     def sort(self):
         """Sort nodes recursively."""
@@ -164,6 +183,10 @@ class Site:
         # traverse nodes setting relationships as we go
         prev_node = None
         for node in self.root.traverse():
+
+            # add to aliases
+            if node.alias:
+                self.aliases[node.alias] = node
 
             # set prev/next
             node.prev = prev_node
@@ -203,31 +226,6 @@ class Site:
         # build nodes recursively
         self.root.build(self.build_path, self.only_modified, build_env)
 
-    def _get_default_values(self):
-        """Dictionary of default values for the site."""
-
-        default_values = {
-            '_sort_options': {
-                'field': 'name',
-                'reverse': False,
-            },
-            '_jinja_options': {
-                'default_template': 'spekulatio/default.html',
-            },
-            '_md_options': {
-                'extensions': ['toc', 'fenced_code'],
-            },
-            '_rst_options': {
-                'settings_overrides': {
-                    'doctitle_xform': False,
-                    'initial_header_level': 1,
-                },
-                'writer_name': 'html5',
-            },
-        }
-
-        return default_values
-
     def _get_build_env(self):
         build_env = {
             'jinja_env': self._get_jinja_env(),
@@ -237,15 +235,40 @@ class Site:
     def _get_jinja_env(self):
         """Initialize templating environment."""
 
+        def get_node(url=None, alias=None):
+            """Get node using its url or its alias."""
+            if url:
+                try:
+                    return self.nodes[url]
+                except KeyError:
+                    raise SpekulatioBuildError(f"Can't find node with url={url}")
+            if alias:
+                try:
+                    return self.aliases[alias]
+                except KeyError:
+                    raise SpekulatioBuildError(f"Can't find node with alias={alias}")
+            raise SpekulatioBuildError(
+                f"'get_node()' must be called passing either an url or an alias."
+            )
+
         def print_as_json(dictionary):
             return json.dumps(dictionary, indent=2)
+
+        def now_as(format):
+            """Returns current date/time as a string.
+
+            :param format: strftime() style string
+            """
+            now = datetime.now()
+            return now.strftime(format)
 
         template_dirs = [str(template_dir.absolute()) for template_dir in self.template_dirs]
         loader = jinja2.FileSystemLoader(template_dirs, followlinks=True)
         jinja_env = jinja2.Environment(loader=loader)
 
-        jinja_env.globals.update(get_node=lambda url: self.nodes[url])
+        jinja_env.globals.update(get_node=get_node)
         jinja_env.globals.update(print_as_json=print_as_json)
+        jinja_env.globals.update(now_as=now_as)
 
         return jinja_env
 
