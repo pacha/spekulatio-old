@@ -1,43 +1,49 @@
-{#
+{% from 'spekulatio-theme/helpers/icon.html' import icon %}
+
 <nav id="primary-navigation-mobile" aria-labelledby="primary-navigation" class="initially-hidden">
-    <ul>
-        {% for item in data.main_menu %}
+    <ul class="menu-first-level">
+        {% for child in _node.root.children %}
         <li>
-            {% if data.first_level_section == item.code %}
-                <a class="active" href="{{ item.url }}">{{ item.mobile_text or item.text }}</a>
-                {% if data.index_node %}
-                    {% with index = get_node(data.index_node) %}
-                    <ul class="sections">
-                        {% for section in index.sections %}
-                            <li><a href="#{{ section.id }}">{{ section.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                    {% endwith %}
-                {% else %}
-                    {% if data.menu %}
-                    <ul class="sections">
-                        {% for entry in data.menu %}
-                        <li>
-                            <a href="{{ entry.url }}">{{ entry.title }}</a>
-                            {% if entry.entries %}
-                            <ul class="subsections">
-                                {% for entry in entry.entries %}
-                                <li>
-                                    <a href="{{ entry.url }}">{{ entry.title }}</a>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
+            {% with active_branch = _node.is_under(child) %}
+
+                {# first level #}
+                <a {{ 'class=active' if active_branch }} href="{{ child.url }}">
+                    {% if 'icon' in child.data %}
+                        {{ icon(child.data.icon, child.data.icon_class or '') }}
                     {% endif %}
+                    {{ child.data.mobile_title or child.data._title }}
+                </a>
+
+                {# second level #}
+                {% with grandchildren = child.children %}
+                {% if active_branch and grandchildren %}
+                <ul class="menu-second-level">
+                    {% for grandchild in grandchildren %}
+                    <li>
+                        <a href="{{ grandchild.url }}">{{ grandchild.title }}</a>
+
+                        {# third level #}
+                        {% with grandgrandchildren = grandchild.children %}
+                        {% if grandgrandchildren %}
+                        <ul class="menu-third-level">
+                            {% for grandgrandchild in grandgrandchildren %}
+                            <li>
+                                <a href="{{ grandgrandchild.url }}">{{ grandgrandchild.title }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% endwith %}
+
+                    </li>
+                    {% endfor %}
+                </ul>
                 {% endif %}
-            {% else %}
-                <a href="{{ item.url }}">{{ item.mobile_text or item.text }}</a>
-            {% endif %}
+                {% endwith %}
+
+            {% endwith %}
         </li>
         {% endfor %}
     </ul>
 </nav>
-#}
+

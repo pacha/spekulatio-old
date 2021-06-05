@@ -1,3 +1,4 @@
+import traceback
 import logging as log
 from pathlib import Path
 from pprint import pprint
@@ -26,13 +27,13 @@ class Node:
         self.depth = (parent.depth + 1) if parent else 0
 
         # relationships
-        self.parent = parent
-        self.children = []
         self.root = parent.root if parent else self
-        self.next = None
-        self.prev = None
-        self.next_sibling = None
-        self.prev_sibling = None
+        self._parent = parent
+        self._children = []
+        self._prev = None
+        self._next = None
+        self._prev_sibling = None
+        self._next_sibling = None
 
         # nodes that this node overwrites
         self.overridden_nodes = []
@@ -77,6 +78,12 @@ class Node:
         return f"{Path('/') / self.relative_dst_path}"
 
     @property
+    def skip(self):
+        """Return if this node is a non-navigating one (ie. skipped from relationships)."""
+        to_be_skipped = '_skip' in self.data and self.data['_skip']
+        return self.is_index or to_be_skipped
+
+    @property
     def user_data(self):
         return {
             key: value for key, value in self.data.items() if not key.startswith("_")
@@ -92,21 +99,57 @@ class Node:
         return full_path.absolute()
 
     @property
-    def is_dir(self):
-        return self.src_path.is_dir()
-
-    @property
     def relative_dst_path(self):
         if self.action.extension_change:
             return self.relative_src_path.with_suffix(self.action.extension_change)
         return self.relative_src_path
 
-    def get_child(self, child_name):
-        """Get a child given its name."""
-        for child in self.children:
-            if child_name == child.name:
-                return child
-        return None
+    @property
+    def is_dir(self):
+        return self.src_path.is_dir()
+
+    @property
+    def is_index(self):
+        return self.name == 'index.html'
+
+    @property
+    def parent(self):
+        if self.is_index:
+            return self._parent._parent
+        return self._parent
+
+    @property
+    def prev(self):
+        """Get previous node while skipping non-navigating ones."""
+        if self.is_index:
+            return self._parent._prev
+        return self._prev
+
+    @property
+    def next(self):
+        """Get next node while skipping non-navigating ones."""
+        if self.is_index:
+            return self._parent._next
+        return self._next
+
+    @property
+    def prev_sibling(self):
+        """Get previous sibling while skipping non-navigating ones."""
+        if self.is_index:
+            return self._parent._prev_sibling
+        return self._prev_sibling
+
+    @property
+    def next_sibling(self):
+        """Get next sibling while skipping non-navigating ones."""
+        if self.is_index:
+            return self._parent._next_sibling
+        return self._next_sibling
+
+    @property
+    def children(self):
+        """Return children of this node except for non-navigating ones."""
+        return [child for child in self._children if not child.skip]
 
     def get(self, *children_names):
         current_node = self
@@ -114,20 +157,48 @@ class Node:
             if child_name in ["", "."]:
                 continue
             elif child_name == "..":
-                current_node = current_node.parent
+                current_node = current_node._parent
             else:
                 current_node = current_node.get_child(child_name)
                 if not current_node:
                     return None
         return current_node
 
+    def get_child(self, child_name):
+        """Get a child given its name."""
+        for child in self._children:
+            if child_name == child.name:
+                return child
+        return None
+
     def get_dst_path(self, build_path):
         full_path = build_path / self.relative_dst_path
         return full_path.absolute()
 
+    def get_nodes_above(self):
+        yield self
+        current_node = self
+        while current_node._parent:
+            yield current_node._parent
+            current_node = current_node._parent
+
+    def get_node_above(self, depth):
+        for node in self.get_nodes_above():
+            if node.depth == depth:
+                return node
+        raise SpekulatioBuildError(
+            f"Ancestor of '{self.url}' at depth '{depth}' not found."
+        )
+
+    def is_under(self, above_node):
+        for node in self.get_nodes_above():
+            if node == above_node:
+                return True
+        return False
+
     def traverse(self):
         yield self
-        for child in self.children:
+        for child in self._children:
             yield from child.traverse()
 
     def print_data(self):
@@ -158,10 +229,10 @@ class Node:
         """
 
         # set values from parent
-        if self.parent:
-            self.branch_data.update(self.parent.branch_data)
-            self.data.update(self.parent.branch_data)
-            self.data.update(self.parent.level_data)
+        if self._parent:
+            self.branch_data.update(self._parent.branch_data)
+            self.data.update(self._parent.branch_data)
+            self.data.update(self._parent.level_data)
 
         # get values from overriden nodes
         for overridden_node in self.overridden_nodes:
@@ -204,7 +275,7 @@ class Node:
             pass
 
         # guarantee that there's always a title
-        if "_title" not in self.data or not self.data["_title"]:
+        if "_title" not in self.data or self.data["_title"] is None:
             try:
                 self.data["_title"] = self.data["_toc"][0]["name"]
             except (KeyError, IndexError):
@@ -299,7 +370,7 @@ class Node:
         # create a map of child nodes for fast access
         try:
             children_map = {
-                getattr(child, sorting_field): child for child in self.children
+                getattr(child, sorting_field): child for child in self._children
             }
         except AttributeError:
             raise SpekulatioValueError(
@@ -328,10 +399,10 @@ class Node:
             sink_sorted_nodes.append(children_map[value])
 
         # use the new list as the children one
-        self.children = top_sorted_nodes + sink_sorted_nodes + bottom_sorted_nodes
+        self._children = top_sorted_nodes + sink_sorted_nodes + bottom_sorted_nodes
 
         # execute recursively
-        for child in self.children:
+        for child in self._children:
             child.sort()
 
     def _sort_with_values(self, values, node_map):
@@ -387,7 +458,7 @@ class Node:
         self.action.build(src_path, dst_path, self, **build_env)
 
         # build children
-        for child in self.children:
+        for child in self._children:
             child.build(build_path, only_modified, build_env)
 
     def render_html(self, jinja_env):
@@ -411,10 +482,14 @@ class Node:
         try:
             content = template.render(_node=self, **self.data)
         except Exception as err:
-            raise
-            exception_name = err.__class__.__name__
-            raise SpekulatioBuildError(
-                f"{self.src_path}: {exception_name}: {err} in template '{template_name}'."
+            msg = (
+                f"{self.src_path}: error rendering template '{template_name}'\n"
+                f"Traceback:\n"
             )
+            traceback_lines = traceback.TracebackException.from_exception(err).format()
+            only_template_lines = [line for line in traceback_lines if ' template' in line]
+            msg = msg + "".join(only_template_lines)
+            msg += f"Error: {err}\n"
+            raise SpekulatioBuildError(msg)
 
         return content

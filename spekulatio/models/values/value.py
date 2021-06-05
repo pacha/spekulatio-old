@@ -24,6 +24,7 @@ class Value:
         # input
         "_template": {"scope": "default", "operation": "replace", "type": str},
         "_alias": {"scope": "local", "operation": "replace", "type": str},
+        "_skip": {"scope": "local", "operation": "replace", "type": bool},
         "_sort": {"scope": "local", "operation": "replace", "type": list},
         "_sort_options": {"scope": "default", "operation": "merge", "type": dict},
         "_jinja_options": {"scope": "default", "operation": "merge", "type": dict},

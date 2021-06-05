@@ -1,3 +1,10 @@
 <article>
-    {{ _content }}
+    {# content #}
+    <div id="article-content">
+        {{ _content }}
+    </div>
+
+    {# prev/next links #}
+    {% include "spekulatio-theme/sections/prev-next.html" %}
 </article>
+

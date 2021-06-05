@@ -1,24 +1,53 @@
 <aside>
     <nav id="secondary-navigation" aria-labelledby="secondary-navigation">
 
-        {# menu entries #}
+        {% with section_node = _node.get_node_above(depth=1) %}
+        {% if _node == section_node and not section_node.is_dir %}
+
+        {# in-node TOC #}
         <ul class="menu-first-level">
-            {% for child in _node.parent.children %}
+            {% with toc = _toc if _toc and (_toc|length > 1 or _toc|length == 0) else _toc[0]['children'] %}
+            {% for child in toc %}
             <li>
-                <a href="{{ child.url }}">{{ child.title }}</a>
-                {% if aside_two_levels and child.children %}
+                <a href="#{{ child.id }}">{{ child.name }}</a>
+                {% if child.children %}
                 <ul class="menu-second-level">
                     {% for grandchild in child.children %}
                     <li>
-                        <a href="{{ grandchild.url }}">{{ grandchild.title }}</a>
+                        <a href="#{{ grandchild.id }}">{{ grandchild.name }}</a>
                     </li>
                     {% endfor %}
                 </ul>
                 {% endif %}
             </li>
             {% endfor %}
+            {% endwith %}
         </ul>
+
+        {% else %}
+
+        {# section menu #}
+        <ul class="menu-first-level">
+            {% for child in section_node.children %}
+            <li>
+                <a href="{{ child.url }}">{{ child.title }}</a>
+                {% with grandchildren = child.children %}
+                {% if grandchildren %}
+                <ul class="menu-second-level">
+                    {% for grandchild in grandchildren %}
+                    <li>
+                        <a href="{{ grandchild.url }}">{{ grandchild.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% endwith %}
+            </li>
+            {% endfor %}
+        </ul>
+
         {% endif %}
+        {% endwith %}
 
     </nav>
 </aside>

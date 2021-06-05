@@ -1,0 +1,15 @@
+
+$background-color: #FFFFFF;
+$text-color: #333333;
+$text-color-light: #666666;
+
+$primary-color: #CE2D2D;
+$primary-color-dark: change-color($primary-color, $lightness: 40%);
+$primary-color-light: change-color($primary-color, $lightness: 70%);
+$primary-color-extra-light: change-color($primary-color, $lightness: 98%);
+
+$secondary-color: #387077;
+$secondary-color-light: #E4F0F1;
+
+$surface-color: #F2F2F2;
+

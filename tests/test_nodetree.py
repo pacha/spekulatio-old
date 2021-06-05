@@ -37,13 +37,21 @@ def test_one_node_site(fixtures_path):
     assert site.root.is_dir is True
     assert len(site.root.children) == 1
 
-    # check only node
-    only_node = site.root.children[0]
-    assert only_node.depth == 1
-    assert only_node.root == site.root
-    assert only_node.parent == site.root
-    assert only_node.relative_src_path.name == "index.md"
-    assert only_node.action.extension_change == ".html"
+    # check foo node
+    foo = site.root.children[0]
+    assert foo.depth == 1
+    assert foo.root == site.root
+    assert foo.parent == site.root
+    assert foo.relative_src_path.name == "foo.md"
+    assert foo.action.extension_change == ".html"
+
+    # check foo's parent
+    index = site.nodes['/index.html']
+    assert index.depth == 1
+    assert index.root == site.root
+    assert index.parent is None
+    assert index.relative_src_path.name == "index.md"
+    assert index.action.extension_change == ".html"
 
 
 def test_multi_node_site(fixtures_path):
@@ -56,11 +64,11 @@ def test_multi_node_site(fixtures_path):
 
     # check root
     assert site.root is not None
-    assert len(site.root.children) == 3
+    assert len(site.root.children) == 2
 
     # check first level
     level1_names = set([node.name for node in site.root.children])
-    assert level1_names == {"dir1", "dir2", "index.html"}
+    assert level1_names == {"dir1", "dir2"}
 
     # check dir1
     dir1 = site.nodes["/dir1"]
@@ -109,7 +117,7 @@ def test_multi_template_site(fixtures_path):
 
     # check first level
     level1_names = set([node.name for node in site.root.children])
-    assert level1_names == {"dir1", "dir2", "dir3", "index.html"}
+    assert level1_names == {"dir1", "dir2", "dir3"}
 
     # check dir1
     dir1 = site.nodes["/dir1"]

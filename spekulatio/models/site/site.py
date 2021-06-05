@@ -112,9 +112,9 @@ class Site:
             node.overridden_nodes.append(old_node)
 
             # inherit children
-            node.children = old_node.children
-            for child in node.children:
-                child.parent = node
+            node._children = old_node._children
+            for child in node._children:
+                child._parent = node
 
         # process children
         is_dir = path.is_dir()
@@ -141,10 +141,10 @@ class Site:
                     log.debug(
                         f" [node overwritten] {relative_src_path} overwrites previous node"
                     )
-                parent.children.remove(old_node)
+                parent._children.remove(old_node)
 
             # add new node
-            parent.children.append(node)
+            parent._children.append(node)
 
         if node.action != virtual_node:
             log.debug(f" [new node] {relative_src_path} > {node.default_url}")
@@ -177,7 +177,13 @@ class Site:
         self.root.sort()
 
     def set_relationships(self):
-        """Set links between nodes."""
+        """Set links between nodes.
+
+        Index nodes and nodes marked with '_skip' are not included:
+
+            * Index nodes have the same relationships as their directory parents
+            * Skipped nodes have their prev/next links set to None
+        """
         # check if site has been initialized
         if not self.root:
             raise SpekulatioReadError(
@@ -193,18 +199,24 @@ class Site:
             if node.alias:
                 self.aliases[node.alias] = node
 
+            # skip if necessary
+            if node.skip:
+                continue
+
             # set prev/next
-            node.prev = prev_node
+            node._prev = prev_node
             if prev_node:
-                prev_node.next = node
+                prev_node._next = node
             prev_node = node
 
             # set siblings
             previous_sibling = None
-            for child in node.children:
-                child.prev_sibling = previous_sibling
+            for child in node._children:
+                if child.skip:
+                    continue
+                child._prev_sibling = previous_sibling
                 if previous_sibling:
-                    previous_sibling.next_sibling = child
+                    previous_sibling._next_sibling = child
                 previous_sibling = child
 
     def build(self):
@@ -217,7 +229,7 @@ class Site:
             )
 
         # check if there's content to build
-        if not self.root.children:
+        if not self.root._children:
             log.warn(
                 "Your site is empty. "
                 "Did you provide the correct directories to build it?"

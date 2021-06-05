@@ -1,6 +1,6 @@
 
-{% macro icon(name, cls='icon') %}
-<svg class="{{ cls }}">
+{% macro icon(name, cls='') %}
+<svg class="icon {{ cls }}">
     <use xlink:href="/static/icons/feather-sprite.svg#{{ name }}"/>
 </svg>
 {% endmacro %}

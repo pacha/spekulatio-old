@@ -1,0 +1,25 @@
+{% if show_prev_next_links %}
+<div id="prev-next-links">
+
+    <div>
+    {% with prev = _node.prev %}
+    {% if prev and prev.data.show_prev_next_links %}
+    « <a class="reference external" href="{{ prev.url }}">{{ prev.title }}</a>
+    {% endif %}
+    {% endwith %}
+    </div>
+
+    <div class="line-block">
+        <div class="line"><br></div>
+    </div>
+
+    <div>
+    {% with next = _node.next %}
+    {% if next and next.data.show_prev_next_links %}
+    <a class="reference external" href="{{ next.url }}">{{ next.title }}</a> »
+    {% endif %}
+    {% endwith %}
+    </div>
+
+</div>
+{% endif %}

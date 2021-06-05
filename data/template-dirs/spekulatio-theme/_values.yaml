@@ -3,12 +3,12 @@ __css_files:
   scope: default
   value:
     - "/static/css/normalize.css"
-    - "/static/css/elements.css"
-    - "/static/css/layout.css"
+    - "/static/css/spekulatio.css"
 
 __js_files:
   scope: default
-  value: []
+  value:
+    - "/static/js/spekulatio.js"
 
 __site:
   scope: default
@@ -24,5 +24,3 @@ __layout:
   scope: default
   value: null
 
-site:
-  author: foo
