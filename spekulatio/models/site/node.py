@@ -81,7 +81,8 @@ class Node:
     def skip(self):
         """Return if this node is a non-navigating one (ie. skipped from relationships)."""
         to_be_skipped = '_skip' in self.data and self.data['_skip']
-        return self.is_index or to_be_skipped
+        to_be_kept = '_skip' in self.data and self.data['_skip'] == False
+        return (self.is_index and not to_be_kept) or to_be_skipped
 
     @property
     def user_data(self):
@@ -417,19 +418,25 @@ class Node:
         sorted_nodes = []
         for value in values:
 
-            # get child
+            # get node
             try:
-                node = node_map[value]
+                node_key = value
+                node = node_map[node_key]
             except KeyError:
-                raise SpekulatioValueError(
-                    f"{self.src_path}: can't sort {value}. There's no node with that name."
-                )
+                # try to append '.html' if node not found in first try
+                try:
+                    node_key = value + '.html'
+                    node = node_map[node_key]
+                except KeyError:
+                    raise SpekulatioValueError(
+                        f"{self.src_path}: can't sort {value}. There's no node with that name."
+                    )
 
             # add it to sorted nodes
             sorted_nodes.append(node)
 
             # remove it from the map
-            del node_map[value]
+            del node_map[node_key]
 
         return sorted_nodes
 
