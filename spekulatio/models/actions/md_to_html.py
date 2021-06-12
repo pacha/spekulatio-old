@@ -30,7 +30,7 @@ def post_extract(node):
     try:
         extensions = node.data["_md_options"]["extensions"]
     except KeyError:
-        extensions = ["toc", "fenced_code"]
+        extensions = ["toc", "fenced_code", "admonition", "attr_list"]
 
     # get source rst text
     src_text = node.data["_src_text"]
