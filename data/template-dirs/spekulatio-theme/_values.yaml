@@ -24,3 +24,6 @@ __layout:
   scope: default
   value: null
 
+__prev_next_links_at_depth:
+  scope: default
+  value: false

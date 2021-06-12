@@ -1,0 +1,26 @@
+
+@import 'colors';
+
+article.home
+{
+    img#project-logo
+    {
+        margin: 3.6rem auto 0 auto;
+        display: block;
+        width: 10%;
+    }
+
+    h1
+    {
+        text-align: center;
+        font-size: 4rem;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    #summary
+    {
+        text-align: center;
+        font-size: 1.3rem;
+    }
+}

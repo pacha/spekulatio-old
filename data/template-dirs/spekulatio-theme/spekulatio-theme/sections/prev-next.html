@@ -1,9 +1,9 @@
-{% if show_prev_next_links %}
+{% if prev_next_links_at_depth != false %}
 <div id="prev-next-links">
 
     <div>
     {% with prev = _node.prev %}
-    {% if prev and prev.data.show_prev_next_links %}
+    {% if prev and prev.depth >= prev_next_links_at_depth %}
     « <a class="reference external" href="{{ prev.url }}">{{ prev.title }}</a>
     {% endif %}
     {% endwith %}
@@ -15,7 +15,7 @@
 
     <div>
     {% with next = _node.next %}
-    {% if next and next.data.show_prev_next_links %}
+    {% if next and next.depth >= prev_next_links_at_depth %}
     <a class="reference external" href="{{ next.url }}">{{ next.title }}</a> »
     {% endif %}
     {% endwith %}
