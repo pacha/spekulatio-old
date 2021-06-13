@@ -1,9 +1,6 @@
-import traceback
 import logging as log
 from pathlib import Path
 from pprint import pprint
-
-from jinja2.exceptions import TemplateNotFound
 
 from spekulatio.exceptions import SpekulatioSkipExtraction
 from spekulatio.exceptions import SpekulatioReadError
@@ -219,7 +216,7 @@ class Node:
         tail = "/" if self.is_dir else ""
         return f"{indent}├── {self.name}{tail}"
 
-    def set_values(self):
+    def set_values(self, site):
         """Take user values and store then in the node.
 
         sources for data:
@@ -240,7 +237,7 @@ class Node:
 
             # extract values from the node
             try:
-                overridden_values = overridden_node.extract_node_values()
+                overridden_values = overridden_node.extract_node_values(site)
             except SpekulatioSkipExtraction:
                 continue
 
@@ -249,7 +246,7 @@ class Node:
 
         # get values defined in this node
         try:
-            values = self.extract_node_values()
+            values = self.extract_node_values(site)
         except SpekulatioSkipExtraction:
             return
 
@@ -268,28 +265,15 @@ class Node:
         # local values
         self._update_data(values["local"], self.data)
 
-        # set local values that can only be computed after the extracted values
-        # have been set
-        try:
-            self.action.post_extract(self)
-        except AttributeError:
-            pass
-
-        # guarantee that there's always a title
-        if "_title" not in self.data or self.data["_title"] is None:
-            try:
-                self.data["_title"] = self.data["_toc"][0]["name"]
-            except (KeyError, IndexError):
-                self.data["_title"] = self.url
-
         # guarantee that there's always a url
         if "_url" not in self.data or not self.data["_url"]:
             self.data["_url"] = self.default_url
 
-    def extract_node_values(self):
+
+    def extract_node_values(self, site):
         """Extract values defined in this node."""
         # get values from _values.yaml file or frontmatter
-        data_dict = self.action.extract(self)
+        data_dict = self.action.extract_values(self, site)
 
         # convert raw values to value objects
         try:
@@ -440,7 +424,31 @@ class Node:
 
         return sorted_nodes
 
-    def build(self, build_path, only_modified, build_env):
+
+    def render_content(self, site):
+        """Extract values derived from the content of the node by parsing and rendering it.
+
+        The content values are:
+
+            * _content: Markdown, RestructuredText or HTML already rendered and converted into HTML.
+            * _title: Top level header of the content.
+            * _toc: Nested structure with the titles of the content in the format:
+
+                [{'level': 1, 'id': 'slug', 'name': 'Main title', 'children': [...]}]
+        """
+
+        # extract content
+        content_values = self.action.extract_content(self, site)
+        self.data.update(content_values)
+
+        # guarantee that there's always a title
+        if "_title" not in self.data or self.data["_title"] is None:
+            try:
+                self.data["_title"] = self.data["_toc"][0]["name"]
+            except (KeyError, IndexError):
+                self.data["_title"] = self.url
+
+    def build(self, build_path, only_modified, site):
         """Persist this node in the destination location."""
 
         # get paths
@@ -462,41 +470,9 @@ class Node:
 
         # build node
         log.debug(f" [build] {self.relative_dst_path} (action: {self.action.__name__})")
-        self.action.build(src_path, dst_path, self, **build_env)
+        self.action.build(src_path, dst_path, self, site)
 
         # build children
         for child in self._children:
-            child.build(build_path, only_modified, build_env)
+            child.build(build_path, only_modified, site)
 
-    def render_html(self, jinja_env):
-
-        # get parameters from configuration
-        try:
-            default_template = self.data["_jinja_options"]["default_template"]
-        except KeyError:
-            default_template = "spekulatio/default.html"
-
-        # get template
-        template_name = self.data.get("_template", default_template)
-        try:
-            template = jinja_env.get_template(template_name)
-        except TemplateNotFound:
-            raise SpekulatioValueError(
-                f"{self.src_path}: template '{template_name}' not found."
-            )
-
-        # write content
-        try:
-            content = template.render(_node=self, **self.data)
-        except Exception as err:
-            msg = (
-                f"{self.src_path}: error rendering template '{template_name}'\n"
-                f"Traceback:\n"
-            )
-            traceback_lines = traceback.TracebackException.from_exception(err).format()
-            only_template_lines = [line for line in traceback_lines if ' template' in line]
-            msg = msg + "".join(only_template_lines)
-            msg += f"Error: {err}\n"
-            raise SpekulatioBuildError(msg)
-
-        return content

@@ -6,11 +6,14 @@ import sass
 extension_change = ".css"
 
 
-def extract(node):
+def extract_values(node, site):
+    return {}
+
+def extract_content(node, site):
     return {}
 
 
-def build(src_path, dst_path, node, **kwargs):
+def build(src_path, dst_path, node, site):
     """Compile SCSS into CSS."""
 
     # get environment for the sass builder

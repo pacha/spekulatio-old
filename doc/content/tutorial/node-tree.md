@@ -1,6 +1,11 @@
+---
 
-The Node Tree
-=============
+_title: The Node Tree
+
+---
+
+Title: {{ _title }}
+===================
 
 Traversing nodes
 ----------------

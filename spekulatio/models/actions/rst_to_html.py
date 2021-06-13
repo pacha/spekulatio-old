@@ -1,13 +1,16 @@
 from docutils import io
 from docutils import core
 
-from .frontmatter import parse_frontmatter
 from spekulatio.exceptions import SpekulatioValueError
+
+from .templates import render_template
+from .templates import render_node_text
+from .frontmatter import parse_frontmatter
 
 extension_change = ".html"
 
 
-def extract(node):
+def extract_values(node, site):
     """Extract data from RestructuredText file into a dictionary."""
 
     # create dictionary
@@ -22,9 +25,11 @@ def extract(node):
 
     return data
 
-
-def post_extract(node):
+def extract_content(node, site):
     """Set values after parsing the RestructuredText content."""
+
+    # render it
+    rendered_content = render_node_text(node, site)
 
     def _extract_toc(node, level=1, toc_depth=3):
         """Extract table of contents from rst document."""
@@ -59,13 +64,10 @@ def post_extract(node):
     settings_overrides = rst_options["settings_overrides"]
     writer_name = rst_options["writer_name"]
 
-    # get source rst text
-    src_text = node.data["_src_text"]
-
     # perform rst to html conversion
     output, pub = core.publish_programmatically(
         source_class=io.StringInput,
-        source=src_text,
+        source=rendered_content,
         source_path=None,
         destination_class=io.NullOutput,
         destination=None,
@@ -90,16 +92,18 @@ def post_extract(node):
     toc = _extract_toc(pub.writer.document)
 
     # update data
-    node.data.update(
-        {
-            "_content": body,
-            "_toc": toc,
-        }
-    )
+    content_values = {
+        "_content": body,
+        "_toc": toc,
+    }
 
+    return content_values
 
-def build(src_path, dst_path, node, jinja_env, **kwargs):
+def build(src_path, dst_path, node, site):
     """Create page from RestructuredText node."""
-    # write final html content
-    content = node.render_html(jinja_env)
+
+    # get content
+    content = render_template(node, site)
+
+    # write output file
     dst_path.write_text(content)

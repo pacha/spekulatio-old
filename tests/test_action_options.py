@@ -23,6 +23,7 @@ def test_md_options(fixtures_path, tmp_path):
     site.from_directory(default_template_path, template_conf)
     site.from_directory(content_path, content_conf)
     site.set_values()
+    site.render_content()
     site.build()
 
     # get output content

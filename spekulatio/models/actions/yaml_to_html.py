@@ -2,10 +2,12 @@ import yaml
 
 from spekulatio.exceptions import SpekulatioBuildError
 
+from .templates import render_template
+
 extension_change = ".html"
 
 
-def extract(node):
+def extract_values(node, site):
     """Extract data from YAML content into a dictionary."""
 
     # create dictionary
@@ -16,8 +18,15 @@ def extract(node):
         raise SpekulatioBuildError(msg)
     return data
 
+def extract_content(node, site):
+    return {}
 
-def build(src_path, dst_path, node, jinja_env, **kwargs):
+
+def build(src_path, dst_path, node, site):
     """Create page from YAML file."""
-    content = node.render_html(jinja_env)
+
+    # get content
+    content = render_template(node, site)
+
+    # write output file
     dst_path.write_text(content)

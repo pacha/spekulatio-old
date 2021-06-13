@@ -42,6 +42,9 @@ def build(build_path, content_paths, template_paths, data_paths, only_modified):
     log.info("Setting node relationships...")
     site.set_relationships()
 
+    log.info("Extracting content from nodes...")
+    site.render_content()
+
     log.info("Writing files to build directory...")
     site.build()
 

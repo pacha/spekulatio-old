@@ -5,7 +5,7 @@ from spekulatio.exceptions import SpekulatioReadError
 extension_change = None
 
 
-def extract(node):
+def extract_values(node, site):
     """Extract data from the '_values.yaml' file associated to a directory."""
 
     def get_values_file_path(node):
@@ -45,7 +45,9 @@ def extract(node):
 
     return data
 
+def extract_content(node, site):
+    return {}
 
-def build(src_path, dst_path, node, **kwargs):
+def build(src_path, dst_path, node, site):
     """Create directory"""
     dst_path.mkdir(parents=True, exist_ok=True)

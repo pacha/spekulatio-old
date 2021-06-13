@@ -1,13 +1,17 @@
 import markdown
 
-from .frontmatter import parse_frontmatter
 from spekulatio.exceptions import SpekulatioReadError
+from spekulatio.exceptions import SpekulatioBuildError
 from spekulatio.exceptions import SpekulatioFrontmatterError
+
+from .templates import render_template
+from .templates import render_node_text
+from .frontmatter import parse_frontmatter
 
 extension_change = ".html"
 
 
-def extract(node):
+def extract_values(node, site):
     """Extract data from Markdown file into a dictionary."""
 
     # create dictionary
@@ -22,9 +26,11 @@ def extract(node):
 
     return data
 
-
-def post_extract(node):
+def extract_content(node, site):
     """Convert Markdown to HTML."""
+
+    # render it
+    rendered_content = render_node_text(node, site)
 
     # get extra extensions
     try:
@@ -32,27 +38,27 @@ def post_extract(node):
     except KeyError:
         extensions = ["toc", "fenced_code", "admonition", "attr_list"]
 
-    # get source rst text
-    src_text = node.data["_src_text"]
-
     # convert text to markdown
     md = markdown.Markdown(extensions=extensions)
-    content = md.convert(src_text)
+    content = md.convert(rendered_content)
 
     # get toc
     toc = md.toc_tokens
 
-    node.data.update(
-        {
-            "_toc": toc,
-            "_content": content,
-        }
-    )
+    content_values = {
+        "_toc": toc,
+        "_content": content,
+    }
+
+    return content_values
 
 
-def build(src_path, dst_path, node, jinja_env, **kwargs):
+def build(src_path, dst_path, node, site):
     """Create page from Markdown node."""
 
-    # write final html content
-    content = node.render_html(jinja_env)
+    # get content
+    content = render_template(node, site)
+
+    # write output file
     dst_path.write_text(content)
+

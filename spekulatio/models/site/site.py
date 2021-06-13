@@ -2,7 +2,6 @@ import re
 import json
 import logging as log
 from pathlib import Path
-from datetime import datetime
 
 import jinja2
 
@@ -154,7 +153,7 @@ class Site:
         return node
 
     def set_values(self):
-        """Set values for nodes recursively."""
+        """Extract and set values from nodes in cascade"""
         # check if site has been initialized
         if not self.root:
             raise SpekulatioReadError(
@@ -164,7 +163,7 @@ class Site:
 
         # process values
         for node in self.root.traverse():
-            node.set_values()
+            node.set_values(site=self)
 
     def sort(self):
         """Sort nodes recursively."""
@@ -219,6 +218,19 @@ class Site:
                     previous_sibling._next_sibling = child
                 previous_sibling = child
 
+    def render_content(self):
+        """Extract content from nodes and render it."""
+        # check if site has been initialized
+        if not self.root:
+            raise SpekulatioReadError(
+                "Site not initialized yet. "
+                "Use Site.from_directory(...) to add content to it."
+            )
+
+        # process values
+        for node in self.root.traverse():
+            node.render_content(site=self)
+
     def build(self):
         """Create files in the destination location."""
         # check if site has been initialized
@@ -236,56 +248,6 @@ class Site:
             )
             return
 
-        # get building environment
-        build_env = self._get_build_env()
-
         # build nodes recursively
-        self.root.build(self.build_path, self.only_modified, build_env)
+        self.root.build(self.build_path, self.only_modified, site=self)
 
-    def _get_build_env(self):
-        build_env = {
-            "jinja_env": self._get_jinja_env(),
-        }
-        return build_env
-
-    def _get_jinja_env(self):
-        """Initialize templating environment."""
-
-        def get_node(url=None, alias=None):
-            """Get node using its url or its alias."""
-            if url:
-                try:
-                    return self.nodes[url]
-                except KeyError:
-                    raise SpekulatioBuildError(f"Can't find node with url={url}")
-            if alias:
-                try:
-                    return self.aliases[alias]
-                except KeyError:
-                    raise SpekulatioBuildError(f"Can't find node with alias={alias}")
-            raise SpekulatioBuildError(
-                f"'get_node()' must be called passing either an url or an alias."
-            )
-
-        def print_as_json(dictionary):
-            return json.dumps(dictionary, indent=2)
-
-        def now_as(format):
-            """Returns current date/time as a string.
-
-            :param format: strftime() style string
-            """
-            now = datetime.now()
-            return now.strftime(format)
-
-        template_dirs = [
-            str(template_dir.absolute()) for template_dir in self.template_dirs
-        ]
-        loader = jinja2.FileSystemLoader(template_dirs, followlinks=True)
-        jinja_env = jinja2.Environment(loader=loader)
-
-        jinja_env.globals.update(get_node=get_node)
-        jinja_env.globals.update(print_as_json=print_as_json)
-        jinja_env.globals.update(now_as=now_as)
-
-        return jinja_env

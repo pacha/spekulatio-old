@@ -1,6 +1,6 @@
 ---
 
-_template: spekulatio/content.html
+_template: content.html
 
 ---
 
