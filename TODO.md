@@ -3,3 +3,4 @@
 * Add configuration file
 * Enable labels
 * Add `_toc` and `_title` to HTML nodes
+* Add user actions

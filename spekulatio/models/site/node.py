@@ -5,9 +5,8 @@ from pprint import pprint
 from spekulatio.exceptions import SpekulatioSkipExtraction
 from spekulatio.exceptions import SpekulatioReadError
 from spekulatio.exceptions import SpekulatioValueError
-from spekulatio.exceptions import SpekulatioBuildError
+from spekulatio.exceptions import SpekulatioWriteError
 from spekulatio.models.values import Value
-from spekulatio.models.filetrees import get_category
 
 
 class Node:
@@ -60,7 +59,17 @@ class Node:
 
     @property
     def title(self):
-        return self.data["_title"]
+        try:
+            return self.data["_title"]
+        except KeyError:
+            raise SpekulatioReadError(
+                f"The title of node '{self.relative_dst_path}' is being referenced "
+                "when it is still not available. If you want to include a reference to it inside "
+                "the content of another node (eg. {{ _node.next_sibling.title }}), "
+                "then explicitely define the '_title' value in the front matter of "
+                "the target node instead of inferring it from the first header of "
+                "its Markdown or RestructuredText content."
+            )
 
     @property
     def alias(self):
@@ -77,8 +86,8 @@ class Node:
     @property
     def skip(self):
         """Return if this node is a non-navigating one (ie. skipped from relationships)."""
-        to_be_skipped = '_skip' in self.data and self.data['_skip']
-        to_be_kept = '_skip' in self.data and self.data['_skip'] == False
+        to_be_skipped = "_skip" in self.data and self.data["_skip"]
+        to_be_kept = "_skip" in self.data and self.data["_skip"] == False
         return (self.is_index and not to_be_kept) or to_be_skipped
 
     @property
@@ -86,10 +95,6 @@ class Node:
         return {
             key: value for key, value in self.data.items() if not key.startswith("_")
         }
-
-    @property
-    def category(self):
-        return get_category(self.relative_dst_path)
 
     @property
     def src_path(self):
@@ -108,7 +113,7 @@ class Node:
 
     @property
     def is_index(self):
-        return self.name == 'index.html'
+        return self.name == "index.html"
 
     @property
     def parent(self):
@@ -169,8 +174,8 @@ class Node:
                 return child
         return None
 
-    def get_dst_path(self, build_path):
-        full_path = build_path / self.relative_dst_path
+    def get_dst_path(self, output_path):
+        full_path = output_path / self.relative_dst_path
         return full_path.absolute()
 
     def get_nodes_above(self):
@@ -184,7 +189,7 @@ class Node:
         for node in self.get_nodes_above():
             if node.depth == depth:
                 return node
-        raise SpekulatioBuildError(
+        raise SpekulatioWriteError(
             f"Ancestor of '{self.url}' at depth '{depth}' not found."
         )
 
@@ -268,7 +273,6 @@ class Node:
         # guarantee that there's always a url
         if "_url" not in self.data or not self.data["_url"]:
             self.data["_url"] = self.default_url
-
 
     def extract_node_values(self, site):
         """Extract values defined in this node."""
@@ -409,7 +413,7 @@ class Node:
             except KeyError:
                 # try to append '.html' if node not found in first try
                 try:
-                    node_key = value + '.html'
+                    node_key = value + ".html"
                     node = node_map[node_key]
                 except KeyError:
                     raise SpekulatioValueError(
@@ -423,7 +427,6 @@ class Node:
             del node_map[node_key]
 
         return sorted_nodes
-
 
     def render_content(self, site):
         """Extract values derived from the content of the node by parsing and rendering it.
@@ -448,12 +451,12 @@ class Node:
             except (KeyError, IndexError):
                 self.data["_title"] = self.url
 
-    def build(self, build_path, only_modified, site):
+    def build(self, output_path, only_modified, site):
         """Persist this node in the destination location."""
 
         # get paths
         src_path = self.src_path
-        dst_path = self.get_dst_path(build_path)
+        dst_path = self.get_dst_path(output_path)
 
         # check if it is necessary to generate the new file
         if only_modified:
@@ -469,10 +472,11 @@ class Node:
                     return
 
         # build node
-        log.debug(f" [build] {self.relative_dst_path} (action: {self.action.__name__})")
+        log.debug(
+            f" [writing] {self.relative_dst_path} ({self.action.__name__.split('.')[-1]})"
+        )
         self.action.build(src_path, dst_path, self, site)
 
         # build children
         for child in self._children:
-            child.build(build_path, only_modified, site)
-
+            child.build(output_path, only_modified, site)

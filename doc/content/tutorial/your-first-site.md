@@ -1,29 +1,32 @@
 
-Your First Site
-===============
+Quick Start
+===========
 
-Hello World
------------
+A Minimal Site
+--------------
 
-To create a new project, you only need to create a root directory and two
+Let's set up a new site just to get a feeling on how Spekulatio
+works. Create a directory for your new project with two
 subdirectories: `content` and `build`.
 
     my-site/
     ├── build/    # your site will be generated here
     └── content/  # here's where you'll put your content files
 
-Now, let's add a page to the site. Create a `content/index.md` file with any
-Markdown content that you want:
+Now, let's add the first page of the site. Create a `content/index.md` file with
+any Markdown content that you want:
 
     Hello World
     ===========
 
     A new site with some **incredible** content.
 
-And we are ready to go. At the root of your project (in this case, inside
-`my-site/`), generate your site by executing the `build` subcommand:
+And this is all we need for now. We can now generate the first version of the
+site. To do so, execute:
 
     spekulatio build
+
+at the root of the project folder (eg. inside `my-site` in this case).
 
 Then, to see the result, you can start a HTTP development server by executing:
 
@@ -35,23 +38,20 @@ browser you'll see something like:
 
 ![My first site](/static/img/tutorial/first-site.png){.mid .shadow}
 
-Granted, the site looks rather modest, so let's add some HTML and styles.
+Well the site doesn't look super sophisticated, but it is a start. Let's add now
+some HTML and styles.
 
-!!! Note
-
-    foooo bar
-
-Adding a template
------------------
+Adding Templates
+----------------
 
 Add a new subdirectory `templates` to your project:
 
     my-site/
     ├── build/
     ├── content/
-    └── templates/  # I know, difficult to believe, but template files go here
+    └── templates/  # difficult to believe... but template files go here
 
-Now, add a new HTML file inside. We'll call it `layout.html`, but you can use any
+Now, add a new HTML file inside it. We'll call it `layout.html`, but you can use any
 name you want:
 
     <!DOCTYPE html>
@@ -65,4 +65,12 @@ name you want:
         </body>
     </html>
 
-There are no restrictions on how the HTML must look like
+You can create any HTML that you want. As you can see, there are two
+placeholders being used. Once you use this template to render a content file (a
+Markdown or Restructured Text one for example) they will be replaced by:
+
+  * `{{ _title }}`: top level title of your content file (eg. "Hello World" for
+    the Markdown file we used above).
+
+  * `{{ _content }}`: the content of the file already converted to HTML.
+

@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 
 from spekulatio.models import Site
-from spekulatio.models.filetrees import content_conf
-from spekulatio.models.filetrees import template_conf
+from spekulatio.models.input_dirs import InputDir
+from spekulatio.paths import default_input_dir_path
 from spekulatio.exceptions import SpekulatioReadError
 
 
@@ -12,9 +12,10 @@ def test_empty_dir_site(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "nodetree" / "empty-dir" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
 
     # check root
     assert site.root is not None
@@ -27,9 +28,10 @@ def test_one_node_site(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "nodetree" / "one-node" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
 
     # check root
     assert site.root is not None
@@ -46,7 +48,7 @@ def test_one_node_site(fixtures_path):
     assert foo.action.extension_change == ".html"
 
     # check foo's parent
-    index = site.nodes['/index.html']
+    index = site.nodes["/index.html"]
     assert index.depth == 1
     assert index.root == site.root
     assert index.parent is None
@@ -58,9 +60,10 @@ def test_multi_node_site(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "nodetree" / "multi-node" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
 
     # check root
     assert site.root is not None
@@ -85,11 +88,13 @@ def test_multi_content_site(fixtures_path):
 
     # source files path
     content1_path = fixtures_path / "nodetree" / "multi-content" / "content1"
+    content1_dir = InputDir(content1_path, "site_content")
     content2_path = fixtures_path / "nodetree" / "multi-content" / "content2"
+    content2_dir = InputDir(content2_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content1_path, content_conf)
-    site.from_directory(content2_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content1_dir)
+    site.from_directory(content2_dir)
 
     # check first level
     level1_names = set([node.name for node in site.root.children])
@@ -105,15 +110,19 @@ def test_multi_template_site(fixtures_path):
 
     # source files path
     template1_path = fixtures_path / "nodetree" / "multi-template" / "template1"
+    template1_dir = InputDir(template1_path, "site_templates")
     template2_path = fixtures_path / "nodetree" / "multi-template" / "template2"
+    template2_dir = InputDir(template2_path, "site_templates")
     content1_path = fixtures_path / "nodetree" / "multi-template" / "content1"
+    content1_dir = InputDir(content1_path, "site_content")
     content2_path = fixtures_path / "nodetree" / "multi-template" / "content2"
+    content2_dir = InputDir(content2_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(template1_path, template_conf)
-    site.from_directory(template2_path, template_conf)
-    site.from_directory(content1_path, content_conf)
-    site.from_directory(content2_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(template1_dir)
+    site.from_directory(template2_dir)
+    site.from_directory(content1_dir)
+    site.from_directory(content2_dir)
 
     # check first level
     level1_names = set([node.name for node in site.root.children])
@@ -143,7 +152,8 @@ def test_ambiguous_content(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "nodetree" / "ambiguous-content" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
+    site = Site(output_path=None, only_modified=False)
     with pytest.raises(SpekulatioReadError):
-        site.from_directory(content_path, content_conf)
+        site.from_directory(content_dir)

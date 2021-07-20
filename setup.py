@@ -27,6 +27,7 @@ setuptools.setup(
         "rst2html5>=1.10.1",
         "markdown>=3.3.3",
         "coloredlogs>=15.0",
+        "cerberus>=1.3.4",
     ],
     extras_require={
         "dev": [

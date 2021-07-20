@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 
 from spekulatio.models import Site
-from spekulatio.models.filetrees import content_conf
-from spekulatio.models.filetrees import template_conf
+from spekulatio.models.input_dirs import InputDir
+from spekulatio.paths import default_input_dir_path
 from spekulatio.exceptions import SpekulatioReadError
 
 
@@ -12,9 +12,10 @@ def test_root(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "relationships" / "root" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
 
     # check all nodes
     dir1 = site.nodes["/dir1"]
@@ -37,9 +38,10 @@ def test_prev_next(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "relationships" / "prev-next" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
     site.sort()
     site.set_relationships()
@@ -70,9 +72,10 @@ def test_siblings(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "relationships" / "siblings" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
     site.sort()
     site.set_relationships()
@@ -111,14 +114,16 @@ def test_siblings(fixtures_path):
 
 def test_get_method(fixtures_path):
 
-    # source files path
-    content_path = fixtures_path / "relationships" / "get-method" / "content"
+    # input dirs
     templates_path = fixtures_path / "relationships" / "get-method" / "templates"
+    templates_dir = InputDir(templates_path, "site_templates")
+    content_path = fixtures_path / "relationships" / "get-method" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
     # build site
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(templates_path, template_conf)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(templates_dir)
+    site.from_directory(content_dir)
     site.set_values()
     site.sort()
     site.set_relationships()

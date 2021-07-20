@@ -1,0 +1,3 @@
+
+The amount is {{ my_var }}.
+

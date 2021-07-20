@@ -8,9 +8,9 @@ import jinja2
 from spekulatio.models.values import Value
 from spekulatio.models.actions import create_dir
 from spekulatio.models.actions import virtual_node
-from spekulatio.models.filetrees import get_filetype
+from spekulatio.models.actions import ignore_actions
 from spekulatio.exceptions import SpekulatioReadError
-from spekulatio.exceptions import SpekulatioBuildError
+from spekulatio.exceptions import SpekulatioWriteError
 from spekulatio.exceptions import SpekulatioInternalError
 
 from .node import Node
@@ -31,10 +31,10 @@ class Site:
         * One call to 'build' to create the site.
     """
 
-    def __init__(self, build_path, only_modified):
+    def __init__(self, output_path, only_modified):
 
         # building parameters
-        self.build_path = build_path
+        self.output_path = output_path
         self.only_modified = only_modified
         self.template_dirs = []
 
@@ -54,37 +54,34 @@ class Site:
         for node in node_iterator:
             log.debug(f"{node}")
 
-    def from_directory(self, directory_path, filetree_conf):
+    def from_directory(self, input_dir):
         # use as jinja template directory if configured as such
-        if filetree_conf.template_dir:
-            self.template_dirs.insert(0, directory_path)
+        if input_dir.is_template_dir:
+            self.template_dirs.insert(0, input_dir.path)
 
         # create the node tree recursively
         self.root = self._from_path(
-            directory_path, directory_path, filetree_conf, parent=None
+            input_dir.path, input_dir.path, input_dir.action_map, parent=None
         )
 
-    def _from_path(self, src_root, path, filetree_conf, parent):
+    def _from_path(self, src_root, path, action_map, parent):
         """Recursively traverse a directory and add its nodes to the site tree.
 
         :param src_root: absolute path to the directory being added
         :param path: path currently being processed during the recursion
-        :param filetree_conf: map of actions to apply in this directory
+        :param action_map: actions to apply in this directory
         :param parent: parent node to attach the new node to
         """
+        # get action associated to this path
+        action = action_map.get_action(path)
+
         # get relative source path
         relative_src_path = path.relative_to(src_root)
 
         # check if path has to be included
-        for ignore_pattern in filetree_conf.ignore_patterns:
-            if re.match(ignore_pattern, path.name):
-                log.debug(f" [skipping] {relative_src_path}")
-                return None
-
-        # get action for this kind of path
-        default_action = filetree_conf.default_action
-        filetype = get_filetype(path)
-        action = filetree_conf.actions.get(filetype, default_action)
+        if action in ignore_actions:
+            log.debug(f" [skipping] {relative_src_path}")
+            return None
 
         # create node
         node = Node(src_root, relative_src_path, action, parent)
@@ -121,7 +118,7 @@ class Site:
         if is_dir:
             for child_src_path in path.iterdir():
                 child_node = self._from_path(
-                    src_root, child_src_path, filetree_conf, parent=node
+                    src_root, child_src_path, action_map, parent=node
                 )
                 has_children = child_node or has_children
 
@@ -163,7 +160,13 @@ class Site:
 
         # process values
         for node in self.root.traverse():
-            node.set_values(site=self)
+            log.debug(f" [setting values] {node.relative_src_path}")
+            try:
+                node.set_values(site=self)
+            except SpekulatioWriteError as err:
+                raise SpekulatioReadError(
+                    f"Error while reading '{node.src_path}': {err}"
+                )
 
     def sort(self):
         """Sort nodes recursively."""
@@ -229,6 +232,7 @@ class Site:
 
         # process values
         for node in self.root.traverse():
+            log.debug(f" [rendering content] {node.relative_src_path}")
             node.render_content(site=self)
 
     def build(self):
@@ -242,12 +246,11 @@ class Site:
 
         # check if there's content to build
         if not self.root._children:
-            log.warn(
+            log.warning(
                 "Your site is empty. "
                 "Did you provide the correct directories to build it?"
             )
             return
 
         # build nodes recursively
-        self.root.build(self.build_path, self.only_modified, site=self)
-
+        self.root.build(self.output_path, self.only_modified, site=self)

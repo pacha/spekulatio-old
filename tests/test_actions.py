@@ -4,8 +4,10 @@ from pathlib import Path
 import pytest
 
 from spekulatio.models import Site
-from spekulatio.models.filetrees import content_conf
-from spekulatio.models.filetrees import template_conf
+from spekulatio.models import InputDir
+from spekulatio.models import FiletypeMap
+from spekulatio.models import filetype_presets
+from spekulatio.paths import default_input_dir_path
 from spekulatio.exceptions import SpekulatioReadError
 
 
@@ -30,11 +32,12 @@ def css_render_action(request):
 
 def test_copy_action(fixtures_path, tmp_path):
 
-    # source files path
+    # input dirs
     content_path = fixtures_path / "actions" / "copy" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(content_dir)
     site.build()
 
     output_path = tmp_path / "foo.txt"
@@ -43,11 +46,12 @@ def test_copy_action(fixtures_path, tmp_path):
 
 def test_create_dir_action(fixtures_path, tmp_path):
 
-    # source files path
+    # input dirs
     content_path = fixtures_path / "actions" / "create-dir" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(content_dir)
     site.build()
 
     output_path = tmp_path / "dir1" / "foo.txt"
@@ -58,15 +62,13 @@ def test_render_html_action(fixtures_path, tmp_path, html_render_action):
 
     # source files path
     content_path = fixtures_path / "actions" / html_render_action / "content"
-    current_path = Path(__file__).absolute().parent.parent
-    default_template_path = (
-        current_path / "data" / "template-dirs" / "spekulatio-default"
-    )
+    content_dir = InputDir(content_path, "site_content")
+    default_dir = InputDir(default_input_dir_path, "site_templates")
 
     # build site
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(default_template_path, template_conf)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(default_dir)
+    site.from_directory(content_dir)
     site.set_values()
     site.render_content()
     site.build()
@@ -95,10 +97,11 @@ def test_css_render_action(fixtures_path, tmp_path, css_render_action):
 
     # source files path
     content_path = fixtures_path / "actions" / css_render_action / "content"
+    content_dir = InputDir(content_path, "site_content")
 
     # build site
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(content_dir)
     site.build()
 
     # get output content
@@ -108,3 +111,91 @@ def test_css_render_action(fixtures_path, tmp_path, css_render_action):
     minimized_content = re.sub(remove_whitespace, "", content)
 
     assert minimized_content == ".alert {border: 1px solid rgba(198, 83, 140, 0.88); }"
+
+
+def test_render_action(fixtures_path, tmp_path):
+
+    # set filetype map
+    filetype_map = FiletypeMap()
+    filetype_map.update(filetype_presets)
+    filetype_map.update(
+        [
+            {
+                "name": "txt",
+                "extensions": [".txt"],
+            }
+        ]
+    )
+
+    # source files path
+    content_path = fixtures_path / "actions" / "render" / "content"
+    content_dir = InputDir(
+        path=content_path,
+        preset_name="site_content",
+        filetype_map=filetype_map,
+        action_dicts=[
+            {
+                "filetype": "txt",
+                "action": "render",
+            }
+        ],
+    )
+
+    # build site
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(content_dir)
+    site.set_values()
+    site.render_content()
+    site.build()
+
+    # text extractor
+    node = site.nodes["/foo.txt"]
+    assert node.user_data == {"my_var": 200}
+
+    # get output content
+    output_path = tmp_path / "foo.txt"
+    content = output_path.read_text()
+
+    assert content.strip() == "The amount is 200."
+
+
+def test_render_without_frontmatter_action(fixtures_path, tmp_path):
+
+    # set filetype map
+    filetype_map = FiletypeMap()
+    filetype_map.update(filetype_presets)
+    filetype_map.update(
+        [
+            {
+                "name": "txt",
+                "extensions": [".txt"],
+            }
+        ]
+    )
+
+    # source files path
+    content_path = fixtures_path / "actions" / "render-without-frontmatter" / "content"
+    content_dir = InputDir(
+        path=content_path,
+        preset_name="site_content",
+        filetype_map=filetype_map,
+        action_dicts=[
+            {
+                "filetype": "txt",
+                "action": "render",
+            }
+        ],
+    )
+
+    # build site
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(content_dir)
+    site.set_values()
+    site.render_content()
+    site.build()
+
+    # get output content
+    output_path = tmp_path / "foo.txt"
+    content = output_path.read_text()
+
+    assert content.strip() == "The amount is 200."

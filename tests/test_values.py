@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 
 from spekulatio.models import Site
-from spekulatio.models.filetrees import content_conf
-from spekulatio.models.filetrees import template_conf
+from spekulatio.models.input_dirs import InputDir
+from spekulatio.paths import default_input_dir_path
 from spekulatio.exceptions import SpekulatioReadError
 
 
@@ -12,9 +12,10 @@ def test_frontmatter_values(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "frontmatter" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
 
     # check node values
@@ -35,9 +36,10 @@ def test_frontmatter_error(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "frontmatter-error" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
 
     with pytest.raises(SpekulatioReadError):
         site.set_values()
@@ -47,9 +49,10 @@ def test_values_file(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "values-file" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
 
     # check node values
@@ -70,9 +73,10 @@ def test_value_scopes(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "value-scopes" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
 
     # check root
@@ -135,9 +139,10 @@ def test_overwriting(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "overwriting" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
 
     # check foo
@@ -156,12 +161,14 @@ def test_overwriting(fixtures_path):
 def test_overwriting_filetrees(fixtures_path):
 
     # source files path
-    content_path1 = fixtures_path / "values" / "overwriting-filetrees" / "content1"
-    content_path2 = fixtures_path / "values" / "overwriting-filetrees" / "content2"
+    content1_path = fixtures_path / "values" / "overwriting-filetrees" / "content1"
+    content1_dir = InputDir(content1_path, "site_content")
+    content2_path = fixtures_path / "values" / "overwriting-filetrees" / "content2"
+    content2_dir = InputDir(content2_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path1, content_conf)
-    site.from_directory(content_path2, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content1_dir)
+    site.from_directory(content2_dir)
     site.set_values()
 
     # check foo
@@ -195,12 +202,14 @@ def test_overwriting_filetrees(fixtures_path):
 def test_default_values(fixtures_path):
 
     # source files path
-    content_path1 = fixtures_path / "values" / "default-values" / "content1"
-    content_path2 = fixtures_path / "values" / "default-values" / "content2"
+    content1_path = fixtures_path / "values" / "default-values" / "content1"
+    content1_dir = InputDir(content1_path, "site_content")
+    content2_path = fixtures_path / "values" / "default-values" / "content2"
+    content2_dir = InputDir(content2_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path1, content_conf)
-    site.from_directory(content_path2, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content1_dir)
+    site.from_directory(content2_dir)
     site.set_values()
 
     # check dir1
@@ -220,11 +229,13 @@ def test_default_inheritance(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "default-inheritance" / "content"
+    content_dir = InputDir(content_path, "site_content")
     template_path = fixtures_path / "values" / "default-inheritance" / "templates"
+    template_dir = InputDir(template_path, "site_templates")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(template_path, template_conf)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(template_dir)
+    site.from_directory(content_dir)
     site.set_values()
 
     # check default template from root
@@ -248,9 +259,10 @@ def test_operations(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "operations" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
 
     # check delete operation
@@ -276,9 +288,10 @@ def test_operations_wrong_append(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "operations-wrong-append" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     with pytest.raises(SpekulatioReadError):
         site.set_values()
 
@@ -287,9 +300,10 @@ def test_operations_wrong_merge(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "operations-wrong-merge" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     with pytest.raises(SpekulatioReadError):
         site.set_values()
 
@@ -298,9 +312,10 @@ def test_operations_wrong_delete(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "operations-wrong-delete" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     with pytest.raises(SpekulatioReadError):
         site.set_values()
 
@@ -309,9 +324,10 @@ def test_duplicate_values(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "values" / "duplicate-values" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
 
     # check directory node

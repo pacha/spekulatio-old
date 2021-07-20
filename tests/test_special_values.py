@@ -3,21 +3,23 @@ from pathlib import Path
 import pytest
 
 from spekulatio.models import Site
-from spekulatio.models.filetrees import content_conf
-from spekulatio.models.filetrees import template_conf
+from spekulatio.models.input_dirs import InputDir
+from spekulatio.paths import default_input_dir_path
 from spekulatio.exceptions import SpekulatioReadError
 
 
 def test_title(fixtures_path, tmp_path):
 
     # source files path
+    templates_path = fixtures_path / "special-values" / "title" / "templates"
+    templates_dir = InputDir(templates_path, "site_templates")
     content_path = fixtures_path / "special-values" / "title" / "content"
-    template_path = fixtures_path / "special-values" / "title" / "templates"
+    content_dir = InputDir(content_path, "site_content")
 
     # build site
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(template_path, template_conf)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(templates_dir)
+    site.from_directory(content_dir)
     site.set_values()
     site.render_content()
     site.build()
@@ -35,13 +37,15 @@ def test_title(fixtures_path, tmp_path):
 def test_alias(fixtures_path, tmp_path):
 
     # source files path
+    templates_path = fixtures_path / "special-values" / "alias" / "templates"
+    templates_dir = InputDir(templates_path, "site_templates")
     content_path = fixtures_path / "special-values" / "alias" / "content"
-    template_path = fixtures_path / "special-values" / "alias" / "templates"
+    content_dir = InputDir(content_path, "site_content")
 
     # build site
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(template_path, template_conf)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(templates_dir)
+    site.from_directory(content_dir)
     site.set_values()
     site.set_relationships()
 
@@ -58,13 +62,15 @@ def test_alias(fixtures_path, tmp_path):
 def test_url(fixtures_path, tmp_path):
 
     # source files path
+    templates_path = fixtures_path / "special-values" / "url" / "templates"
+    templates_dir = InputDir(templates_path, "site_templates")
     content_path = fixtures_path / "special-values" / "url" / "content"
-    template_path = fixtures_path / "special-values" / "url" / "templates"
+    content_dir = InputDir(content_path, "site_content")
 
     # build site
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(template_path, template_conf)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(templates_dir)
+    site.from_directory(content_dir)
     site.set_values()
     site.build()
 

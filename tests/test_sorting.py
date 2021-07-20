@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 
 from spekulatio.models import Site
-from spekulatio.models.filetrees import content_conf
-from spekulatio.models.filetrees import template_conf
+from spekulatio.models.input_dirs import InputDir
+from spekulatio.paths import default_input_dir_path
 from spekulatio.exceptions import SpekulatioReadError
 
 
@@ -12,9 +12,10 @@ def test_default_sorting(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "sorting" / "default-sorting" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
     site.sort()
 
@@ -38,9 +39,10 @@ def test_manual_sorting(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "sorting" / "manual-sorting" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
     site.sort()
 
@@ -64,9 +66,10 @@ def test_mixed_sorting(fixtures_path):
 
     # source files path
     content_path = fixtures_path / "sorting" / "mixed-sorting" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
-    site = Site(build_path=None, only_modified=False)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=None, only_modified=False)
+    site.from_directory(content_dir)
     site.set_values()
     site.sort()
 

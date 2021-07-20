@@ -1,0 +1,8 @@
+output_dir: build/
+input_dirs:
+  - path: spekulatio-theme
+    preset: site_templates
+  - path: templates/
+    preset: site_templates
+  - path: content/
+    preset: site_content

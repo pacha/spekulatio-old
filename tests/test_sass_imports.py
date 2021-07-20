@@ -4,21 +4,23 @@ from pathlib import Path
 import pytest
 
 from spekulatio.models import Site
-from spekulatio.models.filetrees import content_conf
-from spekulatio.models.filetrees import template_conf
+from spekulatio.models.input_dirs import InputDir
+from spekulatio.paths import default_input_dir_path
 from spekulatio.exceptions import SpekulatioReadError
 
 
 def test_value_imports(fixtures_path, tmp_path):
 
     # source files path
-    content_path = fixtures_path / "sass-imports" / "value-imports" / "content"
     templates_path = fixtures_path / "sass-imports" / "value-imports" / "templates"
+    templates_dir = InputDir(templates_path, "site_templates")
+    content_path = fixtures_path / "sass-imports" / "value-imports" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
     # build site
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(templates_path, template_conf)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(templates_dir)
+    site.from_directory(content_dir)
     site.set_values()
     site.build()
 
@@ -31,13 +33,15 @@ def test_value_imports(fixtures_path, tmp_path):
 def test_overridden_imports(fixtures_path, tmp_path):
 
     # source files path
-    content_path = fixtures_path / "sass-imports" / "overridden-imports" / "content"
     templates_path = fixtures_path / "sass-imports" / "overridden-imports" / "templates"
+    templates_dir = InputDir(templates_path, "site_templates")
+    content_path = fixtures_path / "sass-imports" / "overridden-imports" / "content"
+    content_dir = InputDir(content_path, "site_content")
 
     # build site
-    site = Site(build_path=tmp_path, only_modified=False)
-    site.from_directory(templates_path, template_conf)
-    site.from_directory(content_path, content_conf)
+    site = Site(output_path=tmp_path, only_modified=False)
+    site.from_directory(templates_dir)
+    site.from_directory(content_dir)
     site.set_values()
     site.build()
 

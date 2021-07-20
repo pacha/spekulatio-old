@@ -1,0 +1,8 @@
+---
+
+my_var: 200
+
+---
+
+The amount is {{ my_var }}.
+
