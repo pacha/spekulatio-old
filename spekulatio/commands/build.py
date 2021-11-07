@@ -104,7 +104,7 @@ def build(
     # get output directory
     output_dir = config["output_dir"]
     log.info(f"Output directory: {output_dir}")
-    output_path = Path(output_dir)
+    output_path = project_path / output_dir
     try:
         output_path.mkdir(parents=True, exist_ok=True)
     except PermissionError:

@@ -1,15 +1,26 @@
+// Spekulatio Theme Colors
 
+// page background
 $background-color: #FFFFFF;
+
+// surface boxes such as <code> blocks or <footer>
+$surface-color: darken($background-color, 5%);
+
+// normal text
 $text-color: #333333;
-$text-color-light: #666666;
 
+// alternative text color (eg. main menu items)
+$text-color-companion-shade: lighten($text-color, 20%);
+
+// primary accent color (eg. links)
 $primary-color: #CE2D2D;
-$primary-color-dark: change-color($primary-color, $lightness: 40%);
-$primary-color-light: change-color($primary-color, $lightness: 70%);
-$primary-color-extra-light: change-color($primary-color, $lightness: 98%);
 
+// companion shade for the primary accent color (eg. main menu item hover)
+$primary-color-companion-shade: lighten($primary-color, 10%);
+
+// secondary accent color (eg. inline code text)
 $secondary-color: #387077;
-$secondary-color-light: #E4F0F1;
 
-$surface-color: #F2F2F2;
+// companion shade for the secondary accent color (eg. background of inline code)
+$secondary-color-companion-shade: lighten($secondary-color, 57%);
 

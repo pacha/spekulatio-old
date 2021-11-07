@@ -417,7 +417,8 @@ class Node:
                     node = node_map[node_key]
                 except KeyError:
                     raise SpekulatioValueError(
-                        f"{self.src_path}: can't sort {value}. There's no node with that name."
+                        f"{self.src_path}: can't sort '{value}'. There's no node with that name "
+                        "or it is an empty directory."
                     )
 
             # add it to sorted nodes

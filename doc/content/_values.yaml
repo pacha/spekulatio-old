@@ -3,9 +3,8 @@ _template: spekulatio-theme/two-col.html
 
 _sort:
   - index
-  - tutorial
-  - reference
-  - spekulatio-theme
+  - docs
+  - theme
   - download
   - github-link.meta.yaml
 
@@ -20,3 +19,4 @@ site:
   author: Andrés Sopeña Pérez
   logo: /static/img/logo/spekulatio-logo.png
   url: https://spekulat.io
+

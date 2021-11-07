@@ -18,9 +18,96 @@ article.home
         margin-bottom: 0;
     }
 
-    #summary
+    #claim
     {
         text-align: center;
         font-size: 1.3rem;
     }
 }
+
+article#how-it-works
+{
+    section
+    {
+        margin-top: 1.5rem;
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+        @media (max-width: 700px)
+        {
+            grid-template-columns: 1fr;
+        }
+
+        .concept
+        {
+            padding: 0.5rem 1.5rem;
+            align-self: center;
+        }
+
+        .concept-text
+        {
+            h3
+            {
+                margin-top: 0;
+            }
+        }
+
+        .concept-image
+        {
+            img
+            {
+                max-width: 100%;
+            }
+        }
+    }
+}
+
+.three-part-example
+{
+    display: flex;
+
+    img
+    {
+        object-fit: contain;
+        min-width: 10%;
+    }
+
+    img.arrow
+    {
+        flex-shrink: 1.8;
+    }
+
+    img.arrow-right
+    {
+        display: inline;
+        max-width: 12vw;
+    }
+
+    img.arrow-down
+    {
+        display: none;
+        max-height: 11vh;
+    }
+
+    @media (max-width: 400px)
+    {
+        flex-direction: column;
+
+        img.arrow
+        {
+            flex-shrink: 8;
+        }
+
+        img.arrow-right
+        {
+            display: none;
+        }
+
+        img.arrow-down
+        {
+            display: inline;
+        }
+
+    }
+}
+

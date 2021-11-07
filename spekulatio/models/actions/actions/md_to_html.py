@@ -42,7 +42,7 @@ def extract_content(node, site):
     try:
         extensions = node.data["_md_options"]["extensions"]
     except KeyError:
-        extensions = ["toc", "fenced_code", "admonition", "attr_list"]
+        extensions = ["toc", "fenced_code", "admonition", "attr_list", "def_list"]
 
     # convert text to markdown
     md = markdown.Markdown(extensions=extensions)

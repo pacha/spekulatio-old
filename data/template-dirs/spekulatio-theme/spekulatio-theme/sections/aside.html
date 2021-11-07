@@ -1,4 +1,4 @@
-<aside>
+<aside class="spkt">
     <nav id="secondary-navigation" aria-labelledby="secondary-navigation">
 
         {% with section_node = _node.get_node_above(depth=1) %}
@@ -30,7 +30,7 @@
         <ul class="menu-first-level">
             {% for child in section_node.children %}
             <li>
-                <a {{ 'class=active' if _node == child }} href="{{ child.url }}">{{ child.title }}</a>
+                <a {{ 'class=active' if _node.is_under(child) }} href="{{ child.url }}">{{ child.title }}</a>
                 {% with grandchildren = child.children %}
                 {% if grandchildren %}
                 <ul class="menu-second-level">

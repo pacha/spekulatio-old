@@ -1,4 +1,0 @@
-
-Creating a template
-===================
-

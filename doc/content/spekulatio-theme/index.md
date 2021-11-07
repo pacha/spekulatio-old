@@ -1,4 +1,0 @@
-
-Spekulatio Theme
-================
-

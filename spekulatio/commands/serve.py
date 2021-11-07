@@ -18,18 +18,20 @@ import click
     default=8000,
     help="Server port (default: 8000)",
 )
-@click.option(
-    "--build-dir",
+@click.argument(
+    "directory",
     default="./build",
-    help="Directory to be served (default: ./build).",
 )
-def serve(host, port, build_dir):
+def serve(host, port, directory):
     """Serve site for local development."""
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=build_dir, **kwargs)
+            super().__init__(*args, directory=directory, **kwargs)
+
+    class Server(socketserver.TCPServer):
+        allow_reuse_address = True
 
     with socketserver.TCPServer((host, port), Handler) as httpd:
-        click.echo(f"Serving '{build_dir}' at {host}:{port}...")
+        click.echo(f"Serving '{directory}' at {host}:{port}...")
         httpd.serve_forever()

@@ -1,6 +1,0 @@
-
-
-How Spekulatio Works
-====================
-
-
