@@ -67,10 +67,15 @@ class ActionMap:
         # update default action
         self.default_action = all_actions[default_action_name]
 
-    def get_action(self, path):
-        """Return the action associated to a given path."""
+    def get_action(self, path, relative_path):
+        """Return the action associated to a given path.
+
+        The path is provided both as a full one (``path``) or relative (``relative_path``).
+        """
         # get filetype
-        filetype_name = self.filetype_map.get_filetype_name(path)
+        filetype_name = self.filetype_map.get_filetype_name(path, relative_path)
 
         # get action
-        return self.map.get(filetype_name, self.default_action)
+        action = self.map.get(filetype_name, self.default_action)
+
+        return action 

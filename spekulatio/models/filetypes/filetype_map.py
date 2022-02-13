@@ -12,7 +12,7 @@ class FiletypeMap:
     a list of extensions or a regex.
     """
 
-    default_pattern_scope = "filename"
+    default_pattern_scope = "relative-path"
 
     def __init__(self):
         self.map = {}
@@ -49,19 +49,22 @@ class FiletypeMap:
             name = filetype_dict["name"]
 
             # get pattern scope
-            scope = filetype_dict.get("scope", self.default_pattern_scope)
+            scope = filetype_dict.get("scope")
 
             # get pattern
             if "extensions" in filetype_dict:
                 extensions = filetype_dict["extensions"]
                 pattern = self.get_pattern_from_extensions(extensions)
-                if scope != "filename":
+                if scope and scope != "filename":
                     raise SpekulatioValueError(
                         f"The scope for a filename defined using extensions can "
                         f"only be 'filename' (scope provided: '{scope}')"
                     )
+                else:
+                    scope = "filename"
             elif "regex" in filetype_dict:
                 pattern = filetype_dict["regex"]
+                scope = scope or self.default_pattern_scope
 
             # create filetype
             filetype = Filetype(name, pattern, scope)
@@ -93,13 +96,18 @@ class FiletypeMap:
 
         # build regex
         extension_pattern = "|".join(escaped_extensions)
-        pattern = f"^.*({extension_pattern})"
+        pattern = f"^.*({extension_pattern})$"
         return pattern
 
-    def get_filetype_name(self, path):
+    def get_filetype_name(self, path, relative_path):
         """Return the filetype of the provided path.
 
-        * If path is a directory, the filetype name will be '<dir>' independently of the registered filetypes.
+
+        The path is provided both as a full one (``path``) or relative (``relative_path``).
+        Also:
+
+        * If path is a directory, the filetype name will be '<dir>',
+          independently of the registered filetypes.
         * If path does not match any filetype then None is returned.
         """
 
@@ -116,7 +124,7 @@ class FiletypeMap:
 
         # use the map to determine the filetype
         for name, filetype in self.map.items():
-            if filetype.check(path):
+            if filetype.check(relative_path):
                 return filetype.name
         return None
 

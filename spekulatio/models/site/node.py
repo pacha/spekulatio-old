@@ -2,6 +2,8 @@ import logging as log
 from pathlib import Path
 from pprint import pprint
 
+from jinja2.exceptions import TemplateSyntaxError
+
 from spekulatio.exceptions import SpekulatioSkipExtraction
 from spekulatio.exceptions import SpekulatioReadError
 from spekulatio.exceptions import SpekulatioValueError
@@ -53,23 +55,13 @@ class Node:
         # It's used to define values in templates that are applied to the content tree
         self.default_data = {}
 
+        # current Spekulatio pass for this node
+        # possible values: created, set_values, sort, set_relationships, render_content, build
+        self.status = 'created'
+
     @property
     def name(self):
         return self.relative_dst_path.name
-
-    @property
-    def title(self):
-        try:
-            return self.data["_title"]
-        except KeyError:
-            raise SpekulatioReadError(
-                f"The title of node '{self.relative_dst_path}' is being referenced "
-                "when it is still not available. If you want to include a reference to it inside "
-                "the content of another node (eg. {{ _node.next_sibling.title }}), "
-                "then explicitely define the '_title' value in the front matter of "
-                "the target node instead of inferring it from the first header of "
-                "its Markdown or RestructuredText content."
-            )
 
     @property
     def alias(self):
@@ -154,6 +146,45 @@ class Node:
         """Return children of this node except for non-navigating ones."""
         return [child for child in self._children if not child.skip]
 
+    @property
+    def title(self):
+        try:
+            return self.data["_title"]
+        except SpekulatioReadError:
+            raise SpekulatioReadError(
+                f"The title of node '{self.relative_dst_path}' is being referenced "
+                "before it has been processed. If you want to include a reference to it inside "
+                "the content of another node (eg. {{{{ _node.next_sibling.title }}}}), "
+                "then explicitely define the '_title' value in the front matter of "
+                "the target node instead of inferring it from the first header of "
+                "its content."
+            )
+
+    @property
+    def content(self):
+        return self._get_extracted_value("_content", "")
+
+    @property
+    def src_text(self):
+        return self._get_extracted_value("_src_text", "")
+
+    @property
+    def toc(self):
+        return self._get_extracted_value("_toc", [])
+
+    def _get_extracted_value(self, key, default_value):
+        try:
+            return self.data[key]
+        except KeyError:
+            if self.status not in ["render_content", "build"]:
+                attribute_name = key[1:]
+                raise SpekulatioReadError(
+                    f"Can't read attribute '{attribute_name}' of node '{self.relative_dst_path}' because "
+                    f"the content of that node hasn't been processed yet. {self.status}"
+                )
+            else:
+                return default_value
+
     def get(self, *children_names):
         current_node = self
         for child_name in children_names:
@@ -178,31 +209,36 @@ class Node:
         full_path = output_path / self.relative_dst_path
         return full_path.absolute()
 
-    def get_nodes_above(self):
+    def get_ancestors(self):
         yield self
         current_node = self
         while current_node._parent:
             yield current_node._parent
             current_node = current_node._parent
 
-    def get_node_above(self, depth):
-        for node in self.get_nodes_above():
+    def get_ancestor(self, depth):
+        for node in self.get_ancestors():
             if node.depth == depth:
                 return node
         raise SpekulatioWriteError(
             f"Ancestor of '{self.url}' at depth '{depth}' not found."
         )
 
-    def is_under(self, above_node):
-        for node in self.get_nodes_above():
-            if node == above_node:
+    def is_descendant_of(self, potential_ancestor):
+        for node in self.get_ancestors():
+            if node == potential_ancestor:
                 return True
         return False
 
     def traverse(self):
         yield self
-        for child in self._children:
+        for child in self.children:
             yield from child.traverse()
+
+    def traverse_all(self):
+        yield self
+        for child in self._children:
+            yield from child.traverse_all()
 
     def print_data(self):
         """Print node data dicts (for debugging purposes)."""
@@ -230,6 +266,9 @@ class Node:
         - Inheritance:   branch_data, local_data (from level_data)
         - Node values:   default_data, branch_data, level_data, local_data
         """
+
+        # set new status
+        self.status = 'set_values'
 
         # set values from parent
         if self._parent:
@@ -339,6 +378,10 @@ class Node:
         * If the list is shorter than the number of children, the extra children
           will be added at the end sorted alphabetically.
         """
+
+        # set new status
+        self.status = 'sort'
+
         # sort only directories
         if not self.is_dir:
             return
@@ -441,8 +484,16 @@ class Node:
                 [{'level': 1, 'id': 'slug', 'name': 'Main title', 'children': [...]}]
         """
 
+        # set new status
+        self.status = 'render_content'
+
         # extract content
-        content_values = self.action.extract_content(self, site)
+        try:
+            content_values = self.action.extract_content(self, site)
+        except TemplateSyntaxError as err:
+            raise SpekulatioReadError(f"Jinja syntax error at {self.src_path}: {err}")
+        except Exception as err:
+            raise SpekulatioReadError(f"Can't render {self.src_path}: {err}")
         self.data.update(content_values)
 
         # guarantee that there's always a title
@@ -454,6 +505,9 @@ class Node:
 
     def build(self, output_path, only_modified, site):
         """Persist this node in the destination location."""
+
+        # set new status
+        self.status = 'build'
 
         # get paths
         src_path = self.src_path

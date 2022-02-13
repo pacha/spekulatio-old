@@ -57,6 +57,7 @@ def extract_content(node, site):
         "settings_overrides": {
             "doctitle_xform": False,
             "initial_header_level": 1,
+            "syntax_highlight": "short",
         },
         "writer_name": "html5",
     }

@@ -38,8 +38,8 @@ class InputDir:
             self.action_map.update_actions(preset_action_dicts)
 
             # update default action
-            default_action_name = action_map_presets[preset_name].get("default_action")
-            self.action_map.update_default_action(default_action_name)
+            preset_default_action_name = action_map_presets[preset_name].get("default_action")
+            self.action_map.update_default_action(preset_default_action_name)
 
         # add actions from user
         if action_dicts:

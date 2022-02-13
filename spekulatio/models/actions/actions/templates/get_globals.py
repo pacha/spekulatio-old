@@ -1,5 +1,6 @@
 from .template_functions import now_as
 from .template_functions import print_as_json
+from .template_functions import get_url_factory
 from .template_functions import get_node_factory
 
 # globals are computed only once per site for performance reasons
@@ -14,8 +15,9 @@ def get_globals(site):
             {
                 site_id: {
                     "now_as": now_as,
-                    "get_node": get_node_factory(site),
                     "print_as_json": print_as_json,
+                    "get_url": get_url_factory(site),
+                    "get_node": get_node_factory(site),
                 }
             }
         )

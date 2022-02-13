@@ -12,13 +12,13 @@ class Filetype:
         <underscore_file> -> r'^_.+'
 
     When defined, a scope can also be provided and it determines if the pattern
-    must be applied over either the full path or the basename of a file in order
+    must be applied over either the relative path or the basename of a file in order
     to know if such file is of the given filetype.
     """
 
-    valid_pattern_scopes = ("filename", "full-path")
+    valid_pattern_scopes = ("filename", "relative-path")
 
-    def __init__(self, name, pattern, pattern_scope="full-path"):
+    def __init__(self, name, pattern, pattern_scope="relative-path"):
 
         # set name
         self.name = name

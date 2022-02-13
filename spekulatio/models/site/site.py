@@ -44,7 +44,7 @@ class Site:
         self.aliases = {}
 
     def display_tree(self):
-        node_iterator = self.root.traverse()
+        node_iterator = self.root.traverse_all()
 
         # discard root and just print it as a slash
         next(node_iterator)
@@ -72,11 +72,11 @@ class Site:
         :param action_map: actions to apply in this directory
         :param parent: parent node to attach the new node to
         """
-        # get action associated to this path
-        action = action_map.get_action(path)
-
         # get relative source path
         relative_src_path = path.relative_to(src_root)
+
+        # get action associated to this path
+        action = action_map.get_action(path, relative_src_path)
 
         # check if path has to be included
         if action in ignore_actions:
@@ -159,7 +159,7 @@ class Site:
             )
 
         # process values
-        for node in self.root.traverse():
+        for node in self.root.traverse_all():
             log.debug(f" [setting values] {node.relative_src_path}")
             try:
                 node.set_values(site=self)
@@ -195,7 +195,7 @@ class Site:
 
         # traverse nodes setting relationships as we go
         prev_node = None
-        for node in self.root.traverse():
+        for node in self.root.traverse_all():
 
             # add to aliases
             if node.alias:
@@ -221,6 +221,9 @@ class Site:
                     previous_sibling._next_sibling = child
                 previous_sibling = child
 
+            # set status
+            node.status = 'set_relationships'
+
     def render_content(self):
         """Extract content from nodes and render it."""
         # check if site has been initialized
@@ -231,7 +234,7 @@ class Site:
             )
 
         # process values
-        for node in self.root.traverse():
+        for node in self.root.traverse_all():
             log.debug(f" [rendering content] {node.relative_src_path}")
             node.render_content(site=self)
 

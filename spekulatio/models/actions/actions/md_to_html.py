@@ -1,6 +1,7 @@
 import logging
 
 import markdown
+from markdown.extensions.codehilite import CodeHiliteExtension
 
 from spekulatio.exceptions import SpekulatioReadError
 from spekulatio.exceptions import SpekulatioWriteError
@@ -42,7 +43,16 @@ def extract_content(node, site):
     try:
         extensions = node.data["_md_options"]["extensions"]
     except KeyError:
-        extensions = ["toc", "fenced_code", "admonition", "attr_list", "def_list"]
+        extensions = [
+            "toc",
+            "tables",
+            "fenced_code",
+            "admonition",
+            "attr_list",
+            "def_list",
+            "md_in_html",
+            CodeHiliteExtension(guess_lang=False),
+        ]
 
     # convert text to markdown
     md = markdown.Markdown(extensions=extensions)

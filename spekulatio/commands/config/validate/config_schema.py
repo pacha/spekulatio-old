@@ -37,7 +37,7 @@ config_schema = {
                     "type": "string",
                     "required": False,
                     "empty": False,
-                    "allowed": ["filename", "full-path"],
+                    "allowed": ["filename", "relative-path"],
                     "dependencies": "regex",
                 },
             },
