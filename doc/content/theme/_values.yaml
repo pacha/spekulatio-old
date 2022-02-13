@@ -1,5 +1,6 @@
 
 _title: Theme
+_alias: theme
 
 _sort:
   - adding-it
@@ -8,4 +9,4 @@ _sort:
   - components
 
 prev_next_links: true
-
+compact_sidebar_menu: true

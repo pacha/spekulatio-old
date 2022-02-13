@@ -12,11 +12,16 @@ __css_files:
   operation: append
   value:
     # - "https://fonts.googleapis.com/css?family=Lato:400,400i,700"
+    - "/static/css/codehilite.css"
     - "/static/css/overrides.css"
 
 site:
   name: Spekulatio
   author: Andrés Sopeña Pérez
+  description: The Surprisingly Simple Static Site Generator
   logo: /static/img/logo/spekulatio-logo.png
-  url: https://spekulat.io
 
+language: en
+
+directories_as_titles: true
+compact_sidebar_menu: false

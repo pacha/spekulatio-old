@@ -11,237 +11,209 @@ article_classes: home
 
 <h1>Spekulatio</h1>
 
-<p id="claim">
-    An almost totally unopinionated static site generator
-</p>
+<section id="claim">
+    The you-cook-it-you-eat-it static site generator!
+</section>
 
-<p id="summary">
-    Spekulatio is a static site generator that gives you <strong>all</strong>
-    the freedom. Create your HTML without having to follow any rules imposed by
-    the tool. Design the file structure of your project to match your content.
-    Spekulatio doesn't require a predefined set of directories such as
-    <code>assets</code>, <code>static</code> or <code>posts</code>, for
-    example. Also, there's no need to fit your content to a fixed content
-    taxonomy: you don't have <em>posts</em>, <em>sections</em> or
-    <em>subsections</em>? That's fine, the tool won't force your content into
-    them... or any.
-</p>
+<section id="summary">
+    Spekulatio is a static site generator that gives you the freedom to arrange
+    your input files in any way you want, write your HTML without having to
+    follow any predefined structure and create your own configuration variables
+    instead of being given a long list of them.
+</section>
 
-<article id="Quickstart">
-    <h2>Quickstart</h2>
+<section id="description">
+    <h2>Description</h2>
 
     <p>
-    To create the smallest site possible with Spekulatio, just create a
-    directory where to place your content (<code>content/</code>) and a
-    directory where the result site will be generated (<code>build/</code>).
-    Add also some content in Markdown format. For example:
-    </p>
-
-    <pre>
-    hello-world/
-        build/
-        content/
-            index.md
-    </pre>
-
-    <p>
-    Now, just execute <code>spekulatio build</code> inside
-    <code>hello-world/</code> and your brand new site will be ready:
-    </p>
-
-    <pre>
-    hello-world/
-        build/
-            index.html
-        content/
-            index.md
-    </pre>
-
-    <p>
-    To serve your site, execute <code>spekulatio serve</code> from the root
-    directory. A HTTP server will be started and you'll be able to reach your
-    converted files using any browser:
+        Spekulatio uses <strong>Markdown</strong>,
+        <strong>reStructuredText</strong>, <strong>JSON</strong>,
+        <strong>YAML</strong> or plain <strong>HTML</strong> as content files,
+        <a href="https://palletsprojects.com/p/jinja/"><strong>Jinja</strong></a>
+        as its template engine and supports <strong><a
+        href="https://sass-lang.com">SASS/SCSS</a></strong> to generate the
+        styles of the site.
     </p>
 
     <p>
-    <a href="http://localhost:8000/index.html">http://localhost:8000/index.html</a>
+        There are plenty of static site generators out there. What makes
+        Spekulatio different is that it doesn't give you instructions on how to
+        build your site. Instead, it gives you a set of concepts that you can
+        combine to tell <em>it</em> how to build it: <strong>input
+        directories</strong>, <strong>actions</strong>,
+        <strong>templates</strong> and <strong>values</strong>.
     </p>
 
-    Ok, ok, at this point your site may not look very impressive, but from here
-    you can use templates to provide your HTML, add static files, define
-    metadata or configure how each filetype should be processed. One advantage
-    of Spekulatio is that simple things are easy to do and complex things are,
-    well, not difficult either.
-
-</article>
-
-<article id="how-it-works">
-    <h2>How it works</h2>
+    <h3>Input Directories: Choose Your Own File Structure</h3>
     <p>
-    The main idea behind Spekulatio is very simple. Provide a directory with
-    your contents —eg. Markdown, RestructuredText, HTML, CSS or JS files— and
-    Spekulatio will go over each file converting them according to their file type
-    —eg. converting Markdown to HTML or compiling SCSS to CSS.
+        Spekulatio creates the output site by transforming the files provided in
+        <strong>input directories</strong> but keeping their same file structure:
     </p>
+    <div class="three-part-example">
+      <img src="/static/img/home/home-input-dirs-input.png" alt="Spekulatio input directory example">
+      <img src="/static/img/arrows/right.png" class="arrow arrow-right" alt="arrow right">
+      <img src="/static/img/arrows/down.png" class="arrow arrow-down" alt="arrow down">
+      <img src="/static/img/home/home-input-dirs-output.png" alt="Spekulatio output directory example">
+    </div>
 
+    <h3>Actions: Convert Filetypes According to Your Needs</h3>
     <p>
-    The file structure of the input directories is up to you, Spekulatio will
-    just generate a site that mirrors that structure using the converted files:
+        You can provide multiple input directories. And you can assign
+        different sets of <strong>actions</strong> (ie. transformations) to
+        each one of them. For example, HTML files can be copied without transformation
+        in one directory, used as content in another and as templates in a third one:
     </p>
+    <div class="three-part-example">
+      <img src="/static/img/home/home-actions-input.png" alt="Spekulatio actions example (input)">
+      <img src="/static/img/arrows/right.png" class="arrow arrow-right" alt="arrow right">
+      <img src="/static/img/arrows/down.png" class="arrow arrow-down" alt="arrow down">
+      <img src="/static/img/home/home-actions-output.png" alt="Spekulatio actions example (output)">
+    </div>
 
-    <pre>
-    content/
-        static/
-            styles.scss
-        one-section/
-            page.md
-        index.md
-    </pre>
-
-    <pre>
-    build/
-        static/
-            styles.css
-        one-section/
-            page.html
-        index.html
-    </pre>
-
+    <h3>Templates: Write HTML Any Way You Want</h3>
     <p>
-    On top of this, Spekulatio provides several concepts that you can combine
-    to create more complex sites: <em>templates</em>, <em>values</em>,
-    <em>input directories</em> and <em>actions</em>.
+        There's no pre-existing structure that you need to follow when writing
+        your HTML. Write your <strong>templates</strong> using the <a
+        href="https://palletsprojects.com/p/jinja/">Jinja</a> template engine
+        without having to adapt it to how the tool expects it to be.
     </p>
+    <p>
+        Access the <code>_node</code> object to have full access to the site
+        tree in memory and create links and menus automatically depending on
+        the content.
+    </p>
+    <div class="two-part-example">
+        <div class="code">{% filter escape -%}
+---
+_template: layout.html
+---
 
-<section>
-    <div class="concept concept-text">
-        <h3>Templates</h3>
-        Spekulatio supports Markdown, RestructuredText, JSON, YAML and HTML
-        formats to create the HTML pages of your site. For that, it uses the
-        awesome <a href="https://palletsprojects.com/p/jinja/">Jinja template
-        engine</a>. Set which template you want to use for a single content
-        file of a whole section of your site and Spekulatio will render the
-        final page using it.
+Hello World
+===========
+
+This is just a sample Markdown file.
+            {%- endfilter %}
+        <span class="caption">index.md</span></div>
+    <div class="code">{% filter escape -%}
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="UTF-8">
+  </head>
+
+  <body>
+    {% raw -%}
+    {{ _node.content }}
+    {%- endraw %}
+  </body>
+
+</html>
+    {%- endfilter %}
+    <span class="caption">layout.html</span></div>
     </div>
 
-    <div class="concept concept-image">
-        <img src="/static/img/home/input-dirs.png">
-    </div>
-
-    <div class="concept concept-image">
-        <img src="/static/img/home/input-dirs.png">
-    </div>
-
-    <div class="concept concept-text">
-        <h3>Values</h3>
-        <p>
-        Spekulatio treats your site as a tree of nodes and you can set
-        variables inside any node. For example, you can define <code>author:
-        me</code> in one page and <code>author: you</code> in another. Which
-        variables to define is up to you and, once defined, you can use them in
-        templates to change how the final page is rendered or to display their
-        information.
-        </p>
-
-        <p>
-        More importantly, these values are inherited. For example, if you set
-        <code>section: one</code> in one folder, each page that is a descendant
-        to it will have access to that value. Or, for instance, if you set
-        <code>site_name: foobar</code> at the root of your project, every
-        single page of the site will receive this value.
-        </p>
-    </div>
-
-    <div class="concept concept-text">
-        <h3>Input directories</h3>
-        You can pass multiple input directories to create a single site and
-        Spekulatio will merge them together. This allows you to have one or
-        more input directories that you can reuse across sites. Do you have a
-        HTML layout and a set of CSS files that you can reuse in multiple
-        projects? A <em>theme</em> in Spekulatio is not different from any
-        other input directory.
-    </div>
-
-    <div class="concept concept-text">
-        <h3>Actions</h3>
-        You can configure which action should be performed for each file type
-        in each input directory. For example, you can treat HTML files as
-        <em>templates</em> in one directory and as <em>content</em> in another.
-        JSON files can be used to generate HTML pages or just being directly
-        copied into the output site. There are a number of actions available in
-        Spekulatio, like <code>copy</code>, <code>ignore</code>, <code>use as
-        template</code>, or <code>render</code> and you can decide how they are
-        applied to the different file types.
-    </div>
-
-    <div class="concept concept-image">
-        <img src="/static/img/home/input-dirs.png">
-    </div>
-
-    <div class="concept concept-image">
-        <img src="/static/img/home/input-dirs.png">
-    </div>
+    <h3>Values: Create Your Own Configuration Parameters</h3>
+    <p>
+        Spekulatio doesn't have too many configuration variables. Instead, it
+        allows you to define your own <strong>values</strong> and change how
+        the site is generated by your own.
+    </p>
+    <img id="values-tree" src="/static/img/home/home-values.png" alt="Spekulatio values example">
+    <p>
+        For example, you can define an <code>author</code> variable or a
+        <code>show_banner</code> one at any point, and the variables are then
+        recursively inherited by any descendant page or directory from that
+        point on. You can also overwrite previously defined variables and alter
+        their value. Then, in templates, you have <code>if</code> conditionals,
+        <code>for</code> loops and other constructs to both display the values
+        of those variables or to change how the site is generated.
+    </p>
 
 </section>
 
-<article id="how-it-works">
-    <h2>Spekulatio's Theme</h2>
+<article id="is-spekulatio-for-me">
+    <h2>Is Spekulatio for me?</h2>
     <p>
-        If you just want to create a site using some content but don't want to
-        define all the HTML/CSS from scratch, Spekulatio also provides a
-        generic *theme* that you can use out of the box. It's clean layout and
-        customization posibilities make it a good choice for those times when
-        you need to create a site fast. It is responsive and it automatically
-        adapts well to desktop and mobile screens.
+        Rumor says that there are as <a
+        href="https://staticsitegenerators.net">many static site generators</a>
+        as sites themselves in Internet. So, in case you're trying to figure
+        out if Spekulatio is a good fit for you, here you have a quick check
+        list:
+    </p>
+    <ul>
+        <li>
+            <strong>Do you want a static site generator with an abundance of themes and extensions?</strong><br>
+            Then Spekulatio may not be what you're looking for. There are very
+            mature solutions out there with big ecosystems. Spekulatio is more
+            about creating your site from the ground up. It gives you a lot of
+            control at the expense of giving you pre-cooked solutions. If you
+            ever found yourself fighting with other tools, spending more time
+            trying to adapt them than creating your site the way you want, then
+            Spekulatio could be a good option though.
+        </li>
+        <li>
+            <strong>Do you want a static site generator that leverages the JavaScript ecosystem?</strong><br>
+            There are many popular static site generators created around
+            JavaScript tooling such as Node.js, React or Vue. In those cases
+            you typically use JavaScript itself to configure the tool and
+            create the visual components. In Spekulatio, you can, of course,
+            add JavaScript to your sites, but it is designed for you to write
+            good old HTML and CSS directly and provide the content in a variety
+            of formats (Markdown, reStructuredText, YAML, JSON or HTML itself).
+        </li>
+        <li>
+            <strong>Do you like small, unopinionated tools?</strong><br>
+            Then Spekulatio may be for you. Its intended design is to be
+            minimalistic and it tries to make as few assumptions about your
+            site as possible. You can, pretty much, write your site from
+            scratch: the HTML that you want, with the file structure that you
+            want and the parameters that you decide to use. It doesn't give you
+            much more than that tough. Under the hood, Spekulatio just
+            transform files from one format to another, giving you the option
+            to pass values around to parametrize the whole operation. The
+            creativity part is on you.
+        </li>
+</article>
+
+<article id="spekulatio-theme">
+    <h2>Do I have to create all my site from scratch?</h2>
+    <p>
+        Not really. If you want to create something fast, drop content files
+        and generate a site out of them, then you can use the built-in <a
+        href="{{ get_url('spekulatio-theme') }}">Spekulatio theme</a>. When using
+        it, you don't have to write your own HTML and it gives you:
+        <ul>
+            <li>A clean visual appearance.</li>
+            <li>Responsive/Mobile layout out of the box.</li>
+            <li>
+                Autogenerated menus: just drop your content files and the site
+                navigation will adapt automatically.
+            </li>
+        </ul>
     </p>
     <p>
-        If you want to see how it looks like, just look at this site. It uses
-        it!
+        If you want to know how it looks like, well... you're looking at it
+        now. The entire Spekulatio documentation is generated using it.
     </p>
 </article>
 
-<article id="who-is-spekulatio-for">
-    <h2>Who is Spekulatio for?</h2>
+<article id="contributing">
+    <h2>Contributing</h2>
     <p>
-        There are, quite literally, hundreds of static site generators out there.
-        Choosing among them can be really challenging. Spekulato can be a good fit
-        if:
+        Spekulatio is an open source project and accepts contributions. It is written in Python
+        and hosted at <a href="https://github.com/pacha/spekulatio">GitHub</a>.
     </p>
-
-    <ul>
-        <li>
-            You don't want to fight against the tool to be able to create the exact
-            HTML/CSS that you want or to define the file structure that better fits
-            your project.
-        </li>
-        <li>
-            You favor simplicity and small tools with a reduced set of combinable
-            concepts over hundreds of configuration options.
-        </li>
-    </ul>
-
-    On the other hand, there are tools that may be a better choice if:
-
-    <ul>
-        <li>
-            You prefer bigger applications with a large plugin ecosystem.
-        </li>
-        <li>
-            You're looking for a JavaScript based tool. There are a large number of
-            static site generators that leverage the Node.js/React.js ecosystem.
-            Spekulatio is not one of them though (you can add as much JavaScript as
-            you want to your sites in Spekulatio, but the tool itself is language
-            agnostic).
-        </li>
-    </ul>
 </article>
+
 
 <article id="license">
     <h2>License</h2>
     <p>
-    Spekulatio is <a href="https://github.com/pacha/spekulatio/">open source</a>
-    and free. Spekulatio is released under the
-    <a href="https://github.com/pacha/spekulatio/blob/master/LICENSE">MIT license</a>
+        Spekulatio is
+        <a href="https://github.com/pacha/spekulatio/">open source</a>
+        and free, and released under the
+        <a href="https://github.com/pacha/spekulatio/blob/master/LICENSE">MIT license</a>.
     </p>
 </article>
 

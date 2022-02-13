@@ -1,0 +1,13 @@
+
+_title: How to's
+
+_sort:
+  - links
+  - images
+  - styles
+  - code-blocks
+  - menus
+
+prev_next_links: true
+
+foobar: <a href="http://example.com">Text</a>

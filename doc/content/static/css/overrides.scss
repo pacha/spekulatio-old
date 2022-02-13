@@ -18,10 +18,49 @@ article.home
         margin-bottom: 0;
     }
 
+    section
+    {
+        margin: 1.8rem 0;
+    }
+
+    ul
+    {
+        list-style-type: "» ";
+        padding-left: 1ch;
+
+        li
+        {
+            margin-bottom: 1.2rem;
+        }
+    }
+
     #claim
     {
         text-align: center;
-        font-size: 1.3rem;
+        font-size: 1.5rem;
+    }
+
+    #summary
+    {
+        text-align: center;
+        font-size: 1.2rem;
+    }
+
+    img#values-tree
+    {
+        max-width: 40%;
+        margin: 0 auto 1.2rem auto;
+        display: block;
+
+        @media (max-width: 800px)
+        {
+            max-width: 60%;
+        }
+
+        @media (max-width: 400px)
+        {
+            max-width: 80%;
+        }
     }
 }
 
@@ -59,6 +98,43 @@ article#how-it-works
                 max-width: 100%;
             }
         }
+    }
+}
+
+.two-part-example
+{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 1.2rem;
+    grid-row-gap: 1.2rem;
+
+    @media (max-width: 1300px)
+    {
+        grid-template-columns: 1fr;
+    }
+
+    span.caption
+    {
+        font: 0.9rem monospace;
+        color: #999999;
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+    }
+
+    div.code
+    {
+        overflow-x: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        font: 1rem monospace;
+        color: $secondary-color;
+        border-radius: 5px;
+        padding: 1rem 1.5rem;
+        background-color: #F2F2F2;
+        white-space: pre;
     }
 }
 
@@ -111,3 +187,64 @@ article#how-it-works
     }
 }
 
+.reference-page
+{
+    h2
+    {
+        margin: 1.8rem 0 0.6rem 0;
+    }
+
+    p
+    {
+        margin-top: 0;
+    }
+
+    table
+    {
+        margin-bottom: 1.2em;
+    }
+
+    td
+    {
+        font: 0.9rem monospace;
+        white-space: nowrap;
+    }
+}
+
+footer.spkt
+{
+    display: flex;
+    flex-direction: column;
+
+    #copyright
+    {
+        margin: 0.8rem;
+    }
+
+    #extra-info
+    {
+        display: flex;
+        justify-content: center;
+
+        div
+        {
+            padding: 0.2em;
+        }
+
+        #info-separator
+        {
+            color: #BBBBBB;
+            margin: 0 0.5em;
+        }
+
+        @media (max-width: 800px)
+        {
+            flex-direction: column;
+
+            #info-separator
+            {
+                display: none;
+            }
+        }
+    }
+}

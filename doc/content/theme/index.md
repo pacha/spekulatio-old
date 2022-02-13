@@ -1,3 +1,6 @@
+---
+_alias: spekulatio-theme
+---
 
 Spekulatio Theme
 ================

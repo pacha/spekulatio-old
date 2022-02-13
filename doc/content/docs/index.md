@@ -1,23 +1,26 @@
+---
+_alias: docs
+---
 
 Documentation
 =============
 
 This page will walk you through creating static websites using Spekulatio. All
-the main topics you need to know are present here; however, you can also use the
-links at the right as reference for more advanced topics.
+the main topics you need to know are present here; however, the links at the
+right can provide deeper insights into special topics.
 
-If you don't have Spekulatio installed in your system yet, you can also check
-out the [Download](/download.html) section for information on how to install it.
+Check the [Download]({{ get_url('download') }}) section for information about how to
+install Spekulatio in case you don't have it installed in your system yet.
 
 The basics
 ----------
 
 The essence of Spekulatio is very simple: you provide one or more **input
-directories** and the tool generates one **output directory** containing your
-site by applying actions to each one of the source files.
+directories** and the tool creates one **output directory** containing your
+newly generated site. The files in the output directory are created by applying
+actions to the ones in the input directories.
 
-In this example, you can see how a site is generated inside the `build` directory
-by converting each one of the files in `content`:
+In this example, you can see how `content` is converted into `build`:
 
 {# Example content directory being converted #}
 <div class="three-part-example">
@@ -32,19 +35,31 @@ Here, the following actions have been applied:
 * Markdown files have been converted to HTML pages.
 * The SCSS file has been converted to CSS.
 * The PNG image has been copied over without transformation.
-* The file starting with underscore (`_`) has been skipped and was not
+* The file starting with underscore (`_`) has been skipped and not
   included in the final site.
 
 Notice that the files in the output directory (`build`) have the same relative
 path than their counterparts it the input directory (`content`) but with their
-extension changed in some cases.
+extension changed depending on the applied transformation.
 
-In the following sections we'll see how you can define your custom HTML for the
-generated pages using templates, how you can add metadata to control how
-Spekulatio behaves and how to customize which actions are applied to which
-filetypes.
+And that is the essence of Spekulatio: it just transforms input files into
+output ones. However, to allow you to create complex sites it provides some
+additional tools:
 
-But let's start with how to run Spekulatio first.
+* You can pass multiple **input directories** and assign different set of
+  **actions** or transformations to each one. That means that one file format
+  can be processed differently depending on which directory you place it into.
+
+* You can define the HTML used to convert content files using Jinja
+  **templates**, which provide you with ways to define reusable headers,
+  footers, sidebars and give you also programming constructs such as `if` or
+  `for` statements.
+
+* You can define your own **values** at any point of your site and use them
+  in your templates either to show them or to change how your site is rendered.
+
+Also, doing all that is pretty straightforward as you'll see in the next
+sections, but, first, let's take a look to Spekulatio's commands.
 
 The commands
 ------------
@@ -70,11 +85,13 @@ content inside:
 
 The file `index.md` can contain any Markdown formatted text. For example, let's
 use:
+```
+:::md
+Hello World!
+============
 
-    Hello World!
-    ============
-
-    This is my first Spekulatio site!
+This is my first Spekulatio site!
+```
 
 If you run `spekulatio build` inside `hello-world`, a new directory
 `build` will appear with the contents of your first Spekulatio site:
@@ -94,27 +111,27 @@ new site by pointing any browser to:
     http://localhost:8000/
 
 You'll need to keep the development server running to be able to see your
-changes as you do modifications and rebuild your site, and that's why it can be
+changes as you do modifications and rebuild your site. That's why it can be
 a good idea to launch it in a different terminal from the one you're using to
-run the `build` subcommand.
+run the `build` command.
 
 In our case, after opening a web browser at that URL, the result is:
 
 ![Hello World example site](/static/img/docs/hello-world.png){.mid .shadow}
 
-Ok, not the most impressive website ever. Let's see how we can build up from
-here.
+Ok, not the most impressive website ever... yet. Let's see how we can build up
+from here.
 
 !!! note "Debugging your site"
+
     If you get an error when building your site and the error message that you
-    get is not completely clear, you can add the `-vv` (very verbose) parameter
-    to the build command:
+    get is not completely clear, you can add the `-v` (verbose) or `-vv` (very
+    verbose) parameters to the build command:
 
         spekulatio build -vv
 
-    That will display all the operation logs of the tool and you'll be able to
-    see what Spekulatio was trying to do when the error happened, which will
-    potentially help you to locate the problem.
+    This will display all the operation logs and you'll be able to
+    see what Spekulatio was trying to do when the error happened.
 
 Input Directories
 -----------------
@@ -132,17 +149,16 @@ For example:
   <img src="/static/img/docs/two-dirs-output.png" alt="Spekulatio two input directories example">
 </div>
 
-Here, the Markdown files of both input directories are converted. For the
-directory `just-a-folder`, the contents of both sources are merged together. In
-general, each file of each input directory is processed as if its input
-directory was the only one.
+Here, the Markdown files of both input directories are converted. For example,
+in the directory `just-a-folder`, the contents of both sources are merged
+together.
 
 However, the file `static/styles.scss` is present in both `foo` and `bar`. That
 means that both input directories will produce the same `static/styles.css`
-file. When that happens, the file in the second directory is the one that
-is used. We'll see later how to specify a list of directories in a specific order
-using a `spekulatio.yaml` file. But, for now, we can confidently say that `bar`
-was listed after `foo` in this example.
+file. When that happens, the file in the second directory is the one that is
+used. That's an important fact when it comes to provide multiple input
+directories: they are ordered and the later ones override the first ones when
+there's a conflict.
 
 !!! note "Overriding files using multiple input directories"
 
@@ -162,56 +178,28 @@ was listed after `foo` in this example.
     then they both will generate the same `build/page.html` file. So depending
     on which directory is listed later, one will take prececence over the other.
 
-The advantage of being able to pass multiple input directories comes from the
-fact that **different input directories can be assigned different set of actions
-per filetype**.
-
-For example, imagine that we assign different actions to Markdown files to the
-directories `foo` and `bar` of the following project:
-
-    my-project/
-    ├── foo/
-    │   └── page.md
-    └── bar/
-        └── page.md
-
-Let's say that in `foo`, we convert Markdown files to HTML but in `bar`, we just
-copy them to the output directory without transformation. In that case, the
-resulting output directory would be:
-
-    build/
-    ├── page.html
-    └── page.md
-
-with `page.html` coming from `foo` and `page.md` coming from `bar`.
-
-Assigning different set of actions to different directories is the mechanism
-that allows you to use Markdown, reStructuredText, HTML, YAML or JSON files as
-input to templates to generate HTML pages or to copy them to the final site
-without modification.
-
+One of the main advantages of being able to pass multiple input directories is
+that **different input directories can be assigned different set of actions per
+filetype**.
 
 ### Default Input Directories
 
-To define the list of input directories that you want to use, you have two
-options:
+To pass a list of input directories, you can use the [spekulatio.yaml]({{
+get_url('spekulatio.yaml') }}) configuration file. That allows you to provide any
+number of input directories and name them in any way you want.
 
-* Use the list of **default input directories**.
-* Provide a `spekulatio.yaml` file with a custom list.
-
-The syntax of the `spekulatio.yaml` file and how it works is explained in a
-later section. However, for many use cases it is enough to just use the default
-input directories. To do so, you only have to create one or more of the
-following directories at the same level where you run `spekulatio build`:
+However, most of the time, the easiest way to pass content to Spekulatio is
+just using the **default input directories**:
 
 * `templates/`
 * `data/`
 * `content/`
 
-When the `build` command is executed, these directories are checked and the ones
-that are present are used as input. This only works if no `spekulation.yaml`
-file is present, otherwise the list of input directories to be used is the one
-defined in it.
+When `spekulatio build` is executed, these directories are searched in the
+current directory and the ones that are present are used as input. **This only
+works if no [spekulatio.yaml]({{ get_url('spekulatio.yaml') }}) file is present**,
+otherwise the list of input directories to be used is the one defined inside
+that file.
 
 Each one of the three default input directories has a set of actions assigned to
 it. You can place your source files in one or another depending on what you want
@@ -219,20 +207,20 @@ to do:
 
 #### content
 
-> * Markdown, reStructuredText, JSON, YAML and HTML are converted into HTML
->   pages of the final site (using HTML templates).
-> * SASS/SCSS files are converted to CSS.
+> * **Markdown**, **reStructuredText**, **JSON**, **YAML** and **HTML**
+>   are converted into **HTML** pages of the final site (using Jinja templates).
+> * **SASS**/**SCSS** files are converted to **CSS**.
 > * Files starting with an underscore `_` are skipped.
 > * Any other file is copied unmodified to the final site.
 
 #### data
 
-> All files are copied verbatim to the final site (unless they start with an
-> underscore).
+> All files here are copied verbatim to the final site (unless they start with an
+> underscore, then they are skipped).
 
 #### templates
 
-> Same as `content` but HTML files are treated as templates and don't produce,
+> Same as `content` but **HTML** files are treated as templates and don't produce,
 > by themselves, any pages in the site.
 
 For example, if you have a project that looks like:
@@ -255,43 +243,39 @@ The output directory will look like:
     ├── page2.html
     └── page3.html
 
-Where the three pages from `content/` have been converted into final HTML pages
+Where the three pages from `content` have been converted into final HTML pages
 (potentially using the `layout.html` template), the `foo.json` file has been
 copied unmodified and the `layout.html` didn't produce any output as it was just
 available to be used as template.
 
-### Priority of Default Input Directories
+!!! note "Priority of default input directories"
 
-The priority of the default input directories is as follows:
+    For files that generate the same path in the output
+    directory, the ones in `content` have precedence over the ones in `data`,
+    and the ones in `data` have precedence over the ones in `templates`:
 
-    content > data > templates
+        content > data > templates
 
-That means that, for files generate the same path in the output directory,
-the ones in `content` have precedence over the ones in `data`,
-and the ones in `data` have precedence over the ones in `templates`.
+    For example, if you have:
 
-For example, if you have:
+        my-project/
+        ├── content/
+        │   └── static/
+        │       └── styles.scss
+        └── templates/
+            └── static/
+                └── styles.scss
 
-    my-project/
-    ├── content/
-    │   └── static/
-    │       └── styles.scss
-    └── templates/
-        └── static/
-            └── styles.scss
-
-The final `build/static/style.css` file will be generated using `styles.scss`
-from `content`. Or, in other words, the styles that you provide in your content
-will override the ones provided in your templates if their paths are the same.
+    The final `build/static/style.css` file will be generated using `styles.scss`
+    from `content`.
 
 Templates
 ---------
 
-Using the `templates` default directory (or any input directory defined in
-[spekulatio.yaml](#spekulatioyaml) with the `use_as_templates` action assigned),
-you can customize the HTML of your site. Any HTML page in it will be created as
-the combination of a **content file** (a Markdown, reStructuredText, JSON, YAML
-or HTML file in the `content` directory) and one **template** in `templates`.
+Using the `templates` default directory, you can customize the HTML generated in
+your site. Any HTML page in it will be created as the combination of a **content
+file** (a Markdown, reStructuredText, JSON, YAML or HTML file) in `content` and
+one **template** in `templates`.
 
 Consider this basic example:
 
@@ -307,15 +291,15 @@ Consider this basic example:
 The `index.html` page in `build` is rendered by passing the processed contents
 of `index.md` to the template `some-directory/my-template.html`.
 
-Where the content of `index.md` is:
+The content of `index.md` could be something like:
 ```
 ---
 _template: some-directory/my-template.html
 author: me
 ---
 
-Hello World!
-============
+Hello World
+===========
 
 This is my first Spekulatio site!
 ```
@@ -323,36 +307,104 @@ This is my first Spekulatio site!
 And this is the content of `my-template.html`:
 
 {% raw %}
-```html
+```
+:::jinja
+<!DOCTYPE html>
+<html>
+  <body>
+    <article>
+      <div class="author">{{ author }}</div>
+      <div class="content">
+        {{ _node.content }}
+      </div>
+    </article>
+  </body>
+</html>
+```
+{% endraw %}
+
+### The `_template` value
+
+You can see that we added a **front-matter** to the top of the Markdown file
+(the three-dashes delimited YAML snippet). This is one of the ways in which
+variables (also known as **values**) can be defined. We'll cover how **values**
+work in the next section, but for now just keep in mind that there are two
+kinds: the ones that start with an underscore (`_`), which are *special values*
+and are known by the tool and the ones without leading underscore, which are *user
+values* and that you're free to define yourself. `_template` is an special value
+and tells Spekulatio which template file you want to use to render this file.
+`author` is an *user value* and it is just added as an example, it could be
+literally anything (it makes sense that the value is then used in the template
+in some way though).
+
+You can check the complete list of special values [here]({{ get_url('special-values') }}).
+
+### Jinja syntax
+
+You can also see that the template uses double curly brackets
+{% raw %}(`{{ … }}`){% endraw %} to access variables.
+This is part of the Jinja templating syntax.
+[Jinja](https://palletsprojects.com/p/jinja/) is a very popular templating tool
+that allows you to interpolate variables, conditionally add or remove HTML text
+using `if` statements or loop through lists using the `for` construct. Apart
+from those, it has many more features such as filters and macros, and a very
+elegant system of template inheritance that allows you to define reusable parts
+of the page such as headers, footers or sidebars.
+
+This is a quick example of how using values of different kinds looks like in a
+template.
+
+*Values*:
+```
+:::yaml
+my_variable: 1
+my_list:
+  - foo
+  - bar
+my_dict:
+  foo: 1
+  bar: 2
+```
+
+*Template*:
+{% raw %}
+```
+:::jinja
 <!DOCTYPE html>
 <html>
     <body>
-        <article>
-          <div class="author">{{ author }}</div>
-          <div class="content">
-            {{ _node.content }}
-          </div>
-        </article>
+      {# This is a comment. It won't appear in the rendered output #}
+
+      {# Use of a scalar variable #}
+      <p>The value of <code>my_variable</code> is {{ my_variable }}.</p>
+      {% if my_variable < 100 %}
+      <p>Which is a small number.</p>
+      {% endif %}
+
+      {# Use a for-loop to iterate through a list #}
+      <ul>
+      {% for element in my_list %}
+        <li>{{ element }}</li>
+      {% endfor %}
+      </ul>
+
+      {# Access of dictionary elements #}
+      <p>The value of <code>my_dict['foo']</code> is {{ my_dict['foo'] }}.</p>
+      <p>You can also use the dot notation {{ my_dict.foo }}.</p>
+
     </body>
 </html>
 ```
 {% endraw %}
 
-You can see that we added a **front-matter** to the top of the Markdown file
-(the three-dashes delimited YAML snippet) and we added some **Jinja** syntax
-(double curly brackets) together to a new variable (`_node`) to the HTML
-template.
 
-Let's take a look at those new elements.
 
-!!! note "Control Your HTML"
 
-    As you can see, stating to write your own HTML in Spekulatio is a question
-    of adding a file to the correct directory. There's no restriction or
-    predefined structure that you need to take into account when writing the
-    HTML itself either. You can also write your templates in a way that they can
-    be reused across projects (as _themes_) or have them specificaly written for
-    your current project.
+
+
+Values
+------
+
 
 ### Front-matter
 
@@ -374,9 +426,9 @@ limited number of them, like `_title`, `_sort` or `_template`, and they have a
 specific meaning in Spekulatio. To see a complete list of them, you can check
 the reference page [Special Values](/docs/reference/special-values.html). All
 other values —the ones without a leading underscore— are **user values** and are
-up to the user to define. In this case, we set `author` but we could have chosen
-`foobar` or `spam_and_eggs`, from the point of view of the tool, it doesn't
-matter.
+up to the user to define. In this case, we have defined `author` but we could
+have chosen `foobar` or `spam_and_eggs`, from the point of view of the tool,
+you're free to use any variable that you need.
 
 The `_template` value tells Spekulatio which template you want to use. Its
 value has to be relative to the input directory where the templates are stored.
@@ -404,183 +456,25 @@ the second one will have precedence over the first.
 
 ### Jinja Syntax
 
-Spekulatio uses the [Jinja library](https://jinja.palletsprojects.com/) to power
-its templates. It is very flexible and mature and offers a great deal of
-features. The most basic one is interpolating a variable:
+### Variables
 
-{% raw %}
-```html
-<div class="author">{{ author }}</div>
-```
-{% endraw %}
-
-That will be rendered, in our example, as:
-```html
-<div class="author">me</div>
-```
-
-However, Jinja offers much more including conditional statements, loops over
-values, definition of reusable blocks and so on. You can find the documentation
-of the possibilities it offers at:
-
-[https://jinja.palletsprojects.com/en/3.0.x/templates/](https://jinja.palletsprojects.com/en/3.0.x/templates/)
-
-The documentation is very complete and easy to follow, but let's cover here some
-basic elements.
-
-#### Delimiters
-
-To use Jinja constructs, use the following delimiters:
-
-{% raw %}
-* `{{ … }}` for expressions (eg. like interpolating the value of a variable)
-* `{% … %}` for statements (eg. `if` or `for` loops)
-* `{# … #}` for comments. These, unlike HTML comments, won't appear in the final
-  rendered pages.
-{% endraw %}
-
-#### Variable interpolation
-
-Consider a set of variables of different kinds:
-```
-a_scalar: foo
-a_list:
-  - one
-  - two
-a_dictionary:
-  one:
-    two: true
-```
-You can show their values with the double curly brace notation we saw before
-{% raw %}`{{ … }}`{% endraw %}:
-{% raw %}
-```html
-<span>This is a scalar: {{ a_scalar }}</span>
-<span>This is an element in a list {{ a_list[2] }}</span>
-<span>This is an element in a dictionary {{ a_dictionary.one.two }}</span>
-```
-{% endraw %}
-Also, you can apply _filters_ to the values using pipes:
-{% raw %}
-```html
-<span>This is a scalar: {{ a_scalar|upper }}</span>
-```
-{% endraw %}
-The list of all available built-in filters is available
-[here](https://jinja.palletsprojects.com/en/3.0.x/templates/#list-of-builtin-filters).
-
-#### If Statements
-
-You can conditionally render parts of your HTML with `if` statements:
-{% raw %}
-```
-{% if <expresion> %} … {% endif %}
-```
-{% endraw %}
-
-For example, if you have values defined as:
-```
-category: foo
-show_banner: true
-```
-Then you can use them as follows:
-{% raw %}
-```html
-<!DOCTYPE html>
-<html>
-    <head>
-        {% if category == 'foo' %}
-        <link rel="stylesheet" href="static/css/special-styles.css">
-        {% endif %}
-    </head>
-    <body>
-        {% if show_banner %}
-        <div class="banner">
-            …
-        </div>
-        {% endif %}
-    </body>
-</html>
-```
-{% endraw %}
-
-#### For Loops
-
-If you define lists, you can iterate through them using:
-{% raw %}
-```
-{% for <variable> in <iterable> %} … {% endfor %}
-```
-{% endraw %}
-For example, giving this list:
-```
-authors:
-  - Mary
-  - John
-  - Sam
-```
-Then you can iterate over it like this:
+In our example above, we used variables inside our template as follows:
 {% raw %}
 ```html
 <!DOCTYPE html>
 <html>
     <body>
-        <ul class="authors">
-            {% for author in authors %}
-            <li>{{ author }}</li>
-            {% endfor %}
-        </ul>
+        <article>
+          <div class="author">{{ author }}</div>
+          <div class="content">
+            {{ _node.content }}
+          </div>
+        </article>
     </body>
 </html>
 ```
 {% endraw %}
 
-#### Template Inheritance and Includes
-
-In almost every site, there are parts of the layout that are reused across
-different pages. Headers, sidebars or footers are the most common usual suspects
-in this regard. If your site uses one single template for every page then
-reusing those components is very straightforward. You add them to the template
-and every page will show them. However, if you have a more complex site, you may
-want to have different layouts that still share some components. For instance,
-you may want to have some pages displaying an one-column layout and others a
-two-column one, while still keeping the same header and footer.
-
-To solve that problem you can use **template inheritance** in Jinja, which
-allows you to specify that one template has to be based in another one but
-replacing only parts of it.
-
-To illustrate it, imagine that we have the following `templates` folder:
-
-    templates/
-    ├── base.html
-    ├── one-column.html
-    └── two-columns.html
-
-Then `base.html` can contain all the common elements to every page:
-
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <link rel="stylesheet" href="static/css/styles.css">
-            <title>My Site</title>
-        </head>
-        <body>
-            <header> … </header>
-
-            {% block content %}
-            {% endblock %}
-
-            <footer> … </footer>
-        </body>
-    </html>
-
-
-### Using templates
-
-### Overriding templates
-
-### The \_node object
 
 ### Themes
 
@@ -686,155 +580,6 @@ And then access them in the templates like:
     generators and many tools have built-in support for it, such as text editors
     showing the correct syntax highlighting in Markdown files that have one
     present.
-
-### Everything is a dictionary
-
-One key fact about Spekulatio is that each page of the site is internally
-represented as a dictionary of information. Take the following Markdown file for
-example:
-
-    ---
-    author: Sam
-    date: Oct 1st, 2021
-    ---
-
-    A Title
-    =======
-
-    Some content.
-
-When Spekulatio processes this file, its information is stored in the form of a
-dictionary that contains keys for:
-
-* The items in the front-matter.
-* A `_content` entry with the Markdown text already converted to HTML.
-
-In JSON syntax, that dictionary would look like:
-
-    {
-      "author": "Sam",
-      "date": "Oct 1st, 2021",
-      "_content": "<h1 id="a-title">A Title</h1><p>Some content.</p>"
-    }
-
-That means that you can think of the non-front-matter part of the content of
-Markdown, reStructuredText or non-template HTML files as a convenient way of
-defining the special `_content` value.
-
-For example, if you only provide a front-matter and no body of text:
-
-    ---
-    foo: bar
-    ---
-
-Then the internal representation of the page will look like:
-
-    {
-      "foo": "bar",
-      "_content": ""
-    }
-
-In practice, in addition to `_content`, Spekulatio may include additional fields
-in the dictionary depending of the filetype that is being processed. For
-example, for Markdown, the following fields are added:
-
-* `_title`: Main title of the page (ie. the H1 header).
-* `_src_text`: The raw Markdown text
-* `_content`: The Markdown text converted to HTML
-* `_toc`: An structure with the table of contents of the Markdown text
-
-Check the [Actions Reference page](/docs/reference/actions.html) to get more
-information of what values are automatically added to the dictionary depending
-on the filetype being processed (eg. `md_to_html`, `rst_to_html`,
-`html_to_html`).
-
-!!! note "Special values can be overwritten"
-
-    The front-matter of a file has precedence over the special values that
-    Spekulatio automatically adds. For example, it is perfectly fine to define
-    `_title` inside the front-matter and override the default value, which is
-    extracted from the first Markdown header.
-
-### JSON and YAML content files
-
-Markdown, reStructuredText and non-template HTML files are treated as
-dictionaries in which the body of text is used as the source to compute the
-`_content` entry. And in the same way, **JSON and YAML files can also generate
-HTML pages in the final site, only that in these two cases what you pass to the
-tool is the raw dictionary itself**.
-
-For example, consider an example `foo.md` file:
-
-    ---
-    author: Sam
-    _template: my-template.html
-    ---
-
-    A Title
-    =======
-
-    Some content.
-
-Inside Spekulatio, it will generate the following dictionary (in JSON syntax):
-
-    {
-      "author": "Sam",
-      "_template": "my-template.html",
-      "_title": "A Title",
-      "_content": "<h1 id='a-title'>A Title</h1><p>Some content.</p>"
-      "_src_text": "A Title\n=======\n\nSome content.\n",
-      "_toc": [{"level": 1, "id": "a-title", "name": "A Title", "children": []}],
-    }
-
-Now, if you add that JSON content as a `bar.json` to your input directory, the
-content of the two files that will be generated from the Markdown and JSON ones
-(`foo.html` and `bar.html`) will be exactly the same. That means that all the
-content formats of Spekulatio:
-
-* Markdown
-* reStructuredText
-* non-template HTML
-* JSON
-* YAML
-
-are just different ways of passing the exact same information to the tool.
-
-Of course, writing HTML inside quotes of a JSON string is probably not a fun
-experience and you may want to use Markdown or reStructuredText for texts
-instead —and raw HTML for more complex content. However, both JSON and YAML can
-be a very good fit to hold structured data. For example, let's say that you have
-a database full of metadata about TV series. Potentially, you can export the
-information to JSON files and have them automatically rendered as different
-pages in your site.
-
-Like for the other formats, to generate pages out of JSON and YAML files, you
-need to add them to an input directory that has the correct actions associated
-to it (ie. `json_to_html` associated to JSON and `yaml_to_html` associated to
-YAML). The `content` default input directory and the `site_content` preset
-convert JSON and YAML to pages automatically.
-
-!!! Note "Special values in JSON and YAML files"
-
-    The example above may led to think that if you provide content using JSON or
-    YAML files, you *need* to provide special fields such as `_title` or
-    `_content`. That is absolutely not the case. Spekulatio generates these
-    special values automatically when a Markdown file is processed, for
-    instance. But it is up to you to use them or not in your templates. In the
-    same way, you just have to add values to the JSON and YAML files that you'll
-    be using in your HTML templates. For example:
-
-        {
-          "foo": "bar"
-        }
-
-    is a perfectly valid JSON file to generate an HTML page in Spekulatio. The
-    HTML template will receive the `foo` value and it is up to you how to
-    display it in the page.
-
-    That said, sometimes it can be useful to add special values to JSON or YAML
-    files. For instance, if all your templates expect a `_title` variable to be
-    defined independently of the filetype of the source file, you can add it
-    like any other user value.
 
 
 The \_values.yaml file
@@ -981,30 +726,6 @@ can use them for two things:
         </footer>
         {% endif %}
 
-  Another example: you can define a variable that contains the list of CSS files
-  that should be loaded in each page. The variable can be initialized with the
-  default list of files but can also be overridden in particular pages or entire
-  sections. For instance, in the root `_values.yaml` file, you can have:
-
-        css_files:
-          - /styles/css/reset.css
-          - /styles/css/base.css
-          - /styles/css/cusomization.css
-
-  And then in your template:
-
-        <head>
-
-        …
-
-          {% for css_file in css_files %}
-          <link rel="stylesheet" href="{{ css_file }}">
-          {% endfor %}
-
-        …
-
-        </link>
-
 Thanks to the fact that you can define any values that you want, that they can
 have any arbitrary structure (nested lists, dictionaries or scalars),
 that they are inherited and overridden from pages and
@@ -1039,141 +760,6 @@ reference section.
     site. In the name of a value, an underscore means that the value has a
     special meaning within Spekulatio.
 
-Value Extended Syntax
----------------------
-
-Imagine that you define a value like this in the `_values.yaml` at the root of
-your input directory:
-
-    css_files:
-      - /static/css/reset.css
-      - /static/css/styles.css
-
-If you add the following lines to the `<head>` section of your base template:
-
-    {% for css_file in css_files %}
-    <link rel="stylesheet" href="{{ css_file }}">
-    {% endfor %}
-
-all pages of your site will use the same set of CSS files. That's very
-convenient since you can just change that value if you want to add an additional
-CSS file and the whole site will be automatically updated.
-
-Now, imagine that you have a page where you would like to add one extra CSS file
-without affecting the others. Maybe you need to add some custom styles
-that only apply there for some reason. If you add this to its front-matter:
-
-    ---
-    css_files:
-      - /static/css/reset.css
-      - /static/css/styles.css
-      - /static/css/custom.css
-    ---
-
-you'll get the desired effect. All other pages will use the value set at the root
-of the site and this page will use the overwritten value since front-matter
-values have preference over inherited ones. However, there's a problem, if now
-you update the `css_files` values at the root of the site to include an
-additional file:
-
-    css_files:
-      - /static/css/reset.css
-      - /static/css/styles.css
-      - /static/css/one-more.css
-
-the overwritten value in the page will not reflect the change.
-
-To solve this kind of problem, Spekulatio offers the _extended syntax_ for
-values. If you prefix the name of your value by *two* underscores, you can
-provide a dictionary that allows you to control how the value is set. For
-instance, in the case of the example above we could do:
-
-    ---
-    __css_files:
-      operation: append
-      value:
-        - /static/css/custom.css
-    ---
-
-which would add the new CSS file to the already existing value of `css_files`,
-effectively resulting in setting the variable to:
-
-    css_files:
-      - /static/css/reset.css
-      - /static/css/styles.css
-      - /static/css/custom.css
-
-Once you prefix the name of your variable with two underscores, instead of
-passing the actual value you want it to hold, you can provide a dictionary
-of the form:
-
-    __name:
-      operation: replace|append|merge|delete
-      scope: local|level|branch
-      value: <value to use>
-
-where:
-
-* `operation` let's you define what to do with the value. `replace` is the
-  default option, it means that the new value will replace any existing one with
-  the same name. `append` applies only to lists and adds the list provided in
-  `value` to the existing one. `merge` is similar to `append` but it applies to
-  dictionaries, it will merge the dictionary provided in `value` to the already
-  existing one. And, finally, `delete` removes the value altogether (you don't
-  provide a value in this case).
-
-* `scope` controls how the value will be inherited by descendant pages. It only
-  makes sense to use it in `_values.yaml` files since values defined in a
-  front-matter are not inherited by any other page. For instance, if you set the
-  scope to `local` the value won't be inherited by any children of the
-  directory. `level` makes the value to be set in the directory and all the
-  direct children. `branch` is the default and makes the value to be recursively
-  set in every descendant of the current directory.
-
-* `value` is the actual value to use by the selected `operation`.
-
-For example, when you declare a value like:
-
-    foobar:
-      one: 1
-      two: 2
-
-then, in a descendant page or directory you can do:
-
-    __foobar:
-      operation: merge
-      value:
-        three: 3
-
-which will result in the value set to:
-
-    foobar:
-      one: 1
-      two: 2
-      three: 3
-
-Even if the value has not been set before, you can use the extended syntax. For
-example, if you want to set a special header only for the direct children of a
-directory, you can set a value like this in its `_values.yaml` file:
-
-    __special_header:
-      scope: level
-      value: true
-
-then in the template you can check the value of `special_header` and change the
-HTML to use accordingly.
-
-Finally, it is necessary to note that the normal syntax for setting values like:
-
-    foo: bar
-
-is just a short form for:
-
-    __foo:
-      operation: replace
-      scope: branch
-      value: bar
-
 Styles
 ------
 
@@ -1182,4 +768,183 @@ Virtual nodes
 
 spekulatio.yaml
 ---------------
+
+
+Using YAML and JSON files as content
+------------------------------------
+
+In the same way that you can generate HTML pages in the final site from
+Markdown, reStructuredText or raw HTML, you can also use both YAML and JSON
+files. This can be useful when you want to generate site pages out of structured
+information. For example, you could save records of books, games, movies or
+products as JSON files and then generate a page per record.
+
+Actually, from Spekulatio's point of view, there's no much difference between
+passing YAML or JSON or any other content format. For instance, the following
+Markdown file:
+
+    ---
+    author: Sam
+    date: Oct 1st, 2021
+    ---
+
+    A Title
+    =======
+
+    Some content.
+
+is roughly translated within the tool as the following dictionary:
+
+    {
+      "author": "Sam",
+      "date": "Oct 1st, 2021",
+      "_content": "<h1 id="a-title">A Title</h1><p>Some content.</p>"
+    }
+
+The front-matter is added as key-value pairs and then an additional entry is
+added for the Markdown content already converted to HTML.
+
+As you can see, that is 
+
+The key fact about Spekulatio is that each page of the site is internally
+represented as a dictionary of information. Take the following Markdown file for
+example:
+
+    ---
+    author: Sam
+    date: Oct 1st, 2021
+    ---
+
+    A Title
+    =======
+
+    Some content.
+
+When Spekulatio processes this file, its information is stored in the form of a
+dictionary that contains keys for:
+
+* The items in the front-matter.
+* A `_content` entry with the Markdown text already converted to HTML.
+
+In JSON syntax, that dictionary would look like:
+
+That means that you can think of the non-front-matter part of the content of
+Markdown, reStructuredText or non-template HTML files as a convenient way of
+defining the special `_content` value.
+
+For example, if you only provide a front-matter and no body of text:
+
+    ---
+    foo: bar
+    ---
+
+Then the internal representation of the page will look like:
+
+    {
+      "foo": "bar",
+      "_content": ""
+    }
+
+In practice, in addition to `_content`, Spekulatio may include additional fields
+in the dictionary depending of the filetype that is being processed. For
+example, for Markdown, the following fields are added:
+
+* `_title`: Main title of the page (ie. the H1 header).
+* `_src_text`: The raw Markdown text
+* `_content`: The Markdown text converted to HTML
+* `_toc`: An structure with the table of contents of the Markdown text
+
+Check the [Actions Reference page](/docs/reference/actions.html) to get more
+information of what values are automatically added to the dictionary depending
+on the filetype being processed (eg. `md_to_html`, `rst_to_html`,
+`html_to_html`).
+
+!!! note "Special values can be overwritten"
+
+    The front-matter of a file has precedence over the special values that
+    Spekulatio automatically adds. For example, it is perfectly fine to define
+    `_title` inside the front-matter and override the default value, which is
+    extracted from the first Markdown header.
+
+### JSON and YAML content files
+
+Markdown, reStructuredText and non-template HTML files are treated as
+dictionaries in which the body of text is used as the source to compute the
+`_content` entry. And in the same way, **JSON and YAML files can also generate
+HTML pages in the final site, only that in these two cases what you pass to the
+tool is the raw dictionary itself**.
+
+For example, consider an example `foo.md` file:
+
+    ---
+    author: Sam
+    _template: my-template.html
+    ---
+
+    A Title
+    =======
+
+    Some content.
+
+Inside Spekulatio, it will generate the following dictionary (in JSON syntax):
+
+    {
+      "author": "Sam",
+      "_template": "my-template.html",
+      "_title": "A Title",
+      "_content": "<h1 id='a-title'>A Title</h1><p>Some content.</p>"
+      "_src_text": "A Title\n=======\n\nSome content.\n",
+      "_toc": [{"level": 1, "id": "a-title", "name": "A Title", "children": []}],
+    }
+
+Now, if you add that JSON content as a `bar.json` to your input directory, the
+content of the two files that will be generated from the Markdown and JSON ones
+(`foo.html` and `bar.html`) will be exactly the same. That means that all the
+content formats of Spekulatio:
+
+* Markdown
+* reStructuredText
+* non-template HTML
+* JSON
+* YAML
+
+are just different ways of passing the exact same information to the tool.
+
+Of course, writing HTML inside quotes of a JSON string is probably not a fun
+experience and you may want to use Markdown or reStructuredText for texts
+instead —and raw HTML for more complex content. However, both JSON and YAML can
+be a very good fit to hold structured data. For example, let's say that you have
+a database full of metadata about TV series. Potentially, you can export the
+information to JSON files and have them automatically rendered as different
+pages in your site.
+
+Like for the other formats, to generate pages out of JSON and YAML files, you
+need to add them to an input directory that has the correct actions associated
+to it (ie. `json_to_html` associated to JSON and `yaml_to_html` associated to
+YAML). The `content` default input directory and the `site_content` preset
+convert JSON and YAML to pages automatically.
+
+!!! Note "Special values in JSON and YAML files"
+
+    The example above may led to think that if you provide content using JSON or
+    YAML files, you *need* to provide special fields such as `_title` or
+    `_content`. That is absolutely not the case. Spekulatio generates these
+    special values automatically when a Markdown file is processed, for
+    instance. But it is up to you to use them or not in your templates. In the
+    same way, you just have to add values to the JSON and YAML files that you'll
+    be using in your HTML templates. For example:
+
+        {
+          "foo": "bar"
+        }
+
+    is a perfectly valid JSON file to generate an HTML page in Spekulatio. The
+    HTML template will receive the `foo` value and it is up to you how to
+    display it in the page.
+
+    That said, sometimes it can be useful to add special values to JSON or YAML
+    files. For instance, if all your templates expect a `_title` variable to be
+    defined independently of the filetype of the source file, you can add it
+    like any other user value.
+
 
