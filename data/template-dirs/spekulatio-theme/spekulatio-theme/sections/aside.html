@@ -1,7 +1,7 @@
 <aside class="spkt">
     <nav id="secondary-navigation" aria-labelledby="secondary-navigation">
 
-        {% with section_node = _node.get_node_above(depth=1) %}
+        {% with section_node = _node.get_ancestor(depth=1) %}
         {% if _node == section_node and not section_node.is_dir %}
 
         {# in-node TOC #}
@@ -27,13 +27,22 @@
         {% else %}
 
         {# section menu #}
-        <ul class="menu-first-level">
+        <ul>
             {% for child in section_node.children %}
-            <li>
-                <a {{ 'class=active' if _node.is_under(child) }} href="{{ child.url }}">{{ child.title }}</a>
+            <li {{ 'class=compact' if compact_sidebar_menu }}>
+                {# first level #}
+                <div class="menu-header">
+                    {% if child.is_dir and child.data.directories_as_titles %}
+                    <span {{ 'class=active' if _node.is_descendant_of(child) }}>{{ child.title }}</span>
+                    {% else %}
+                    <a {{ 'class=active' if _node.is_descendant_of(child) }} href="{{ child.url }}">{{ child.title }}</a>
+                    {% endif %}
+                </div>
+
+                {# second level #}
                 {% with grandchildren = child.children %}
                 {% if grandchildren %}
-                <ul class="menu-second-level">
+                <ul>
                     {% for grandchild in grandchildren %}
                     <li>
                         <a {{ 'class=active' if _node == grandchild }} href="{{ grandchild.url }}">{{ grandchild.title }}</a>

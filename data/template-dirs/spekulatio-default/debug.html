@@ -131,26 +131,33 @@
             <h3>Special values</h3>
             <dl>
             {% for key, value in _node.data.items() %}
-                {% if key.startswith('_') and key not in ('_content', '_src_text', '_toc') %}
+                {% if key.startswith('_') and key not in ('_title', '_content', '_src_text', '_toc') %}
                 <dt>{{ key }}</dt>
                 <dd><pre>{{ print_as_json(value) }}</pre></dd>
                 {% endif  %}
             {% endfor %}
             </dl>
 
-            <h3>_content</h3>
+            <h3>_node.title</h3>
             <div class="large-field">
-                {{ _content or '(none)' }}
+                {{ _node.title or '(none)' }}
             </div>
 
-            <h3>_src_text</h3>
+            <h3>_node.content</h3>
             <div class="large-field">
-                {{ _src_text or '(none)' }}
+                {{ _node.content or '(none)' }}
             </div>
 
-            <h3>_toc</h3>
+            <h3>_node.src_text</h3>
             <div class="large-field">
-                <pre>{{ print_as_json(_toc) if _toc else '(none)' }}</pre>
+                <pre><code>
+                {{ _node.src_text or '(none)' }}
+                </code></pre>
+            </div>
+
+            <h3>_node.toc</h3>
+            <div class="large-field">
+                <pre>{{ print_as_json(_node.toc) if _node.toc else '(none)' }}</pre>
             </div>
         </div>
     </body>

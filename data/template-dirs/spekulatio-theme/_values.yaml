@@ -15,15 +15,21 @@ __site:
   value:
     name: My Site
     author: Me
+    description: A brand new site
+    logo: null
 
 __language:
   scope: default
-  value: null
-
-__layout:
-  scope: default
-  value: null
+  value: false
 
 __prev_next_links:
+  scope: default
+  value: false
+
+__directories_as_titles:
+  scope: default
+  value: false
+
+__compact_sidebar_menu:
   scope: default
   value: false

@@ -4,7 +4,7 @@
     <ul class="menu-first-level">
         {% for child in _node.root.children %}
         <li>
-            {% with active_branch = _node.is_under(child) %}
+            {% with active_branch = _node.is_descendant_of(child) %}
 
                 {# first level #}
                 <a {{ 'class=active' if active_branch }} href="{{ child.url }}">

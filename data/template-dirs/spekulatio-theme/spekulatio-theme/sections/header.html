@@ -7,7 +7,7 @@
     {# main menu (shown in desktop) #}
     <nav id="main-menu-desktop">
         {% for child in _node.root.children %}
-            <a {{ 'class=active' if _node.is_under(child) }} href="{{ child.url }}">
+            <a {{ 'class=active' if _node.is_descendant_of(child) }} href="{{ child.url }}">
                 {% if 'icon' in child.data %}
                     {{ icon(child.data.icon, child.data.icon_class or '') }}
                 {% endif %}
@@ -18,7 +18,7 @@
 
     {# hamburger menu (shown in mobile) #}
     <nav class="main-menu-mobile">
-        <a href="javascript:;" onclick="toggleVisibility('primary-navigation-mobile')">
+        <a href="javascript:;" onclick="toggleVisibility('primary-navigation-mobile')" aria-label="Menu" >
             <svg class="menu-icon"><use xlink:href="/static/icons/feather-sprite.svg#menu"/></svg>
         </a>
     </nav>

@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html {{ ('lang="' ~ language ~ '"') if language else '' }}>
+<html {{ 'lang="' ~  language  ~ '"' if language }}>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        {% if site.description %}
+        <meta name="description" content="{{ site.description }}">
+        {% endif %}
 
         {% include "spekulatio-theme/sections/head-extra.html" ignore missing %}
 
